@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProgressTabView: View {
     @EnvironmentObject var store: StretchStore
+    @EnvironmentObject var companion: CompanionStore
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -10,16 +11,28 @@ struct ProgressTabView: View {
                               subtitle: "Every soft minute counts")
                     .padding(.top, 8)
 
+                friendshipCard
+                    .softAppear()
+
                 HStack(spacing: 12) {
                     StatTile(icon: .flame, value: "\(store.currentStreak)", label: "current streak", tint: SoftTheme.coral)
                     StatTile(icon: .arrowUp, value: "\(store.bestStreak)", label: "best streak", tint: SoftTheme.sun)
                 }
+                .softAppear(delay: 0.05)
                 HStack(spacing: 12) {
                     StatTile(icon: .clock, value: "\(store.totalMinutes)", label: "total minutes", tint: SoftTheme.lavender)
                     StatTile(icon: .check, value: "\(store.sessionCount)", label: "sessions", tint: SoftTheme.sage)
                 }
+                .softAppear(delay: 0.1)
+
+                MonthHeatmap()
+                    .softAppear(delay: 0.15)
+
+                BodyBalanceCard()
+                    .softAppear(delay: 0.2)
 
                 weekChart
+                    .softAppear(delay: 0.25)
 
                 badgeGrid
 
@@ -34,6 +47,57 @@ struct ProgressTabView: View {
         }
         .background(SoftTheme.cream.ignoresSafeArea())
         .navigationBarHidden(true)
+    }
+
+    // MARK: Friendship summary
+
+    private var friendshipCard: some View {
+        let prog = Friendship.progressToNext(companion.xp)
+        return SoftCard {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle().stroke(SoftTheme.coral.opacity(0.18), lineWidth: 5)
+                            .frame(width: 44, height: 44)
+                        Circle().trim(from: 0, to: max(prog.fraction, 0.02))
+                            .stroke(SoftTheme.coral, style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                            .frame(width: 44, height: 44)
+                        Text("\(companion.level)")
+                            .font(SoftTheme.display(16))
+                            .foregroundColor(SoftTheme.coral)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("FRIENDSHIP WITH BUDDY")
+                            .font(SoftTheme.body(10, .bold))
+                            .foregroundColor(SoftTheme.coral)
+                            .kerning(1.2)
+                        Text(Friendship.levelName(companion.level))
+                            .font(SoftTheme.display(18))
+                            .foregroundColor(SoftTheme.ink)
+                        Text(companion.level >= 12 ? "Max level - best friends forever"
+                             : "\(prog.need - prog.have) xp to level \(companion.level + 1)")
+                            .font(SoftTheme.body(12))
+                            .foregroundColor(SoftTheme.inkSoft)
+                    }
+                    Spacer()
+                }
+                NavigationLink(destination: BuddyStudioView()) {
+                    HStack {
+                        Text("Open Buddy Studio")
+                            .font(SoftTheme.body(13, .bold))
+                            .foregroundColor(SoftTheme.coral)
+                        Spacer()
+                        SoftIcon(kind: .chevronRight, size: 14, color: SoftTheme.coral)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(RoundedRectangle(cornerRadius: 13, style: .continuous)
+                        .fill(SoftTheme.coral.opacity(0.08)))
+                }
+                .buttonStyle(SoftPressStyle())
+            }
+        }
     }
 
     // MARK: 14-day minutes chart (custom bars — no Charts framework)
@@ -169,6 +233,153 @@ struct ProgressTabView: View {
         f.locale = Locale(identifier: "en_US")
         f.dateFormat = "MMM d, h:mm a"
         return f.string(from: date)
+    }
+}
+
+// Month calendar heatmap: day cells tinted by minutes stretched.
+struct MonthHeatmap: View {
+    @EnvironmentObject var store: StretchStore
+    @State private var monthOffset = 0    // 0 = current month, negative = past
+
+    private var monthStart: Date {
+        let cal = Calendar.current
+        let comps = cal.dateComponents([.year, .month], from: Date())
+        let start = cal.date(from: comps) ?? Date()
+        return cal.date(byAdding: .month, value: monthOffset, to: start) ?? start
+    }
+
+    var body: some View {
+        SoftCard {
+            VStack(spacing: 12) {
+                HStack {
+                    monthArrow(dir: -1)
+                    Spacer()
+                    Text(monthTitle)
+                        .font(SoftTheme.body(15, .bold)).foregroundColor(SoftTheme.ink)
+                    Spacer()
+                    monthArrow(dir: 1)
+                }
+                grid
+                HStack(spacing: 10) {
+                    Text("less").font(SoftTheme.body(10)).foregroundColor(SoftTheme.inkSoft)
+                    ForEach(0..<4, id: \.self) { i in
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(SoftTheme.coral.opacity(intensity(i)))
+                            .frame(width: 14, height: 14)
+                    }
+                    Text("more").font(SoftTheme.body(10)).foregroundColor(SoftTheme.inkSoft)
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    private func intensity(_ step: Int) -> Double { [0.08, 0.3, 0.55, 0.9][step] }
+
+    private func stepFor(minutes: Int) -> Int {
+        switch minutes {
+        case 0: return 0
+        case 1..<5: return 1
+        case 5..<12: return 2
+        default: return 3
+        }
+    }
+
+    private var monthTitle: String {
+        let f = DateFormatter(); f.locale = Locale(identifier: "en_US")
+        f.dateFormat = "MMMM yyyy"
+        return f.string(from: monthStart)
+    }
+
+    private func monthArrow(dir: Int) -> some View {
+        let cal = Calendar.current
+        // Back is limited to the month of the earliest session; forward stops at now.
+        let disabled: Bool
+        if dir > 0 {
+            disabled = monthOffset >= 0
+        } else if let first = store.sessions.first {
+            let firstMonth = cal.date(from: cal.dateComponents([.year, .month], from: first.date)) ?? Date()
+            let target = cal.date(byAdding: .month, value: monthOffset + dir, to:
+                cal.date(from: cal.dateComponents([.year, .month], from: Date())) ?? Date()) ?? Date()
+            disabled = target < firstMonth
+        } else {
+            disabled = true
+        }
+        return Button(action: { if !disabled { monthOffset += dir } }) {
+            SoftIcon(kind: dir < 0 ? .chevronLeft : .chevronRight, size: 15,
+                     color: disabled ? SoftTheme.ink.opacity(0.18) : SoftTheme.inkSoft)
+                .frame(width: 30, height: 30)
+        }
+        .buttonStyle(SoftPressStyle())
+        .disabled(disabled)
+    }
+
+    private var grid: some View {
+        let cal = Calendar.current
+        let dayCount = cal.range(of: .day, in: .month, for: monthStart)?.count ?? 28
+        let firstWeekday = cal.component(.weekday, from: monthStart)      // 1 = Sun
+        let leading = (firstWeekday + 5) % 7                              // Mon-start blanks
+        let cells: [Int?] = Array(repeating: nil, count: leading) + (1...dayCount).map { $0 }
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 5), count: 7)
+        let letters = ["M", "T", "W", "T", "F", "S", "S"]
+        return LazyVGrid(columns: columns, spacing: 5) {
+            ForEach(letters.indices, id: \.self) { i in
+                Text(letters[i])
+                    .font(SoftTheme.body(10, .semibold)).foregroundColor(SoftTheme.inkSoft)
+            }
+            ForEach(cells.indices, id: \.self) { i in
+                if let day = cells[i], let date = cal.date(byAdding: .day, value: day - 1, to: monthStart) {
+                    let mins = date <= Date() ? store.minutes(on: date) : 0
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(SoftTheme.coral.opacity(intensity(stepFor(minutes: mins))))
+                        .overlay(RoundedRectangle(cornerRadius: 5)
+                            .stroke(cal.isDateInToday(date) ? SoftTheme.coral : .clear, lineWidth: 1.6))
+                        .frame(height: 22)
+                } else {
+                    Color.clear.frame(height: 22)
+                }
+            }
+        }
+    }
+}
+
+// Which body areas get the love — share of stretched time per area.
+struct BodyBalanceCard: View {
+    @EnvironmentObject var store: StretchStore
+
+    var body: some View {
+        SoftCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Body balance")
+                    .font(SoftTheme.display(17)).foregroundColor(SoftTheme.ink)
+                let balance = store.areaBalance()
+                if balance.allSatisfy({ $0.fraction == 0 }) {
+                    Text("Finish a session and Buddy will chart which areas you care for most.")
+                        .font(SoftTheme.body(13)).foregroundColor(SoftTheme.inkSoft)
+                } else {
+                    ForEach(balance, id: \.area) { item in
+                        HStack(spacing: 10) {
+                            Text(item.area.title)
+                                .font(SoftTheme.body(12, .semibold))
+                                .foregroundColor(SoftTheme.inkSoft)
+                                .frame(width: 118, alignment: .leading)
+                            GeometryReader { g in
+                                ZStack(alignment: .leading) {
+                                    Capsule().fill(item.area.tint.opacity(0.14))
+                                    Capsule().fill(item.area.tint)
+                                        .frame(width: max(g.size.width * item.fraction, item.fraction > 0 ? 6 : 0))
+                                }
+                            }
+                            .frame(height: 10)
+                            Text("\(Int((item.fraction * 100).rounded()))%")
+                                .font(SoftTheme.body(11, .bold))
+                                .foregroundColor(SoftTheme.ink.opacity(0.6))
+                                .frame(width: 34, alignment: .trailing)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

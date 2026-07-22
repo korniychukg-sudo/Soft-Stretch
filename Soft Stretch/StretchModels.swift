@@ -203,6 +203,8 @@ struct SessionRecord: Codable, Identifiable {
     let routineName: String
     let seconds: Int
     let stretchCount: Int
+    // Seconds per body-area raw value; optional so v1 records keep decoding.
+    var areaSeconds: [String: Int]? = nil
 }
 
 struct BadgeSpec: Identifiable {

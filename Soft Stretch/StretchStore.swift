@@ -74,10 +74,12 @@ final class StretchStore: ObservableObject {
 
     // MARK: Sessions
 
-    func recordSession(routine: Routine, seconds: Int, stretchCount: Int) {
+    func recordSession(routine: Routine, seconds: Int, stretchCount: Int,
+                       areaSeconds: [String: Int]? = nil) {
         let record = SessionRecord(date: Date(), routineID: routine.id,
                                    routineName: routine.name,
-                                   seconds: max(seconds, 1), stretchCount: stretchCount)
+                                   seconds: max(seconds, 1), stretchCount: stretchCount,
+                                   areaSeconds: areaSeconds)
         sessions.append(record)
         let newly = evaluateBadges()
         freshBadges = newly
@@ -143,6 +145,23 @@ final class StretchStore: ObservableObject {
     var distinctRoutinesTried: Set<String> {
         Set(sessions.map { $0.routineID })
             .intersection(Set(RoutineLibrary.all.map { $0.id }))
+    }
+
+    func minutes(on day: Date) -> Int {
+        sessions(on: day).reduce(0) { $0 + $1.seconds } / 60
+    }
+
+    // Share of stretched time per body area (sessions with area data only).
+    func areaBalance() -> [(area: BodyArea, fraction: CGFloat)] {
+        var totals: [String: Int] = [:]
+        for s in sessions {
+            for (k, v) in s.areaSeconds ?? [:] { totals[k, default: 0] += v }
+        }
+        let sum = totals.values.reduce(0, +)
+        let areas: [BodyArea] = [.neckShoulders, .backCore, .hipsLegs, .armsChest]
+        return areas.map { a in
+            (a, sum > 0 ? CGFloat(totals[a.rawValue] ?? 0) / CGFloat(sum) : 0)
+        }
     }
 
     // Minutes per day for the last `days` days, oldest first.
