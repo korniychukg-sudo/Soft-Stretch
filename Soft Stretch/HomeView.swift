@@ -40,10 +40,13 @@ struct HomeView: View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 18) {
                 header
+                    .softAppear()
 
                 nookCard
+                    .softAppear(delay: 0.05)
 
                 todaysPickCard
+                    .softAppear(delay: 0.1)
 
                 HStack(spacing: 12) {
                     StatTile(icon: .flame, value: "\(store.currentStreak)",
@@ -54,11 +57,14 @@ struct HomeView: View {
                     StatTile(icon: .check, value: "\(store.sessionCount)",
                              label: "sessions", tint: SoftTheme.sage)
                 }
+                .softAppear(delay: 0.15)
 
                 quickRow
+                    .softAppear(delay: 0.2)
 
                 if !store.settings.favoriteRoutines.isEmpty {
                     favorites
+                        .softAppear(delay: 0.25)
                 }
             }
             .padding(.horizontal, SoftTheme.screenPad)

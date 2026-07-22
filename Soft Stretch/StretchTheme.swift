@@ -43,6 +43,27 @@ enum SoftTheme {
     static var cardShadow: Color { ink.opacity(0.07) }
 }
 
+// Gentle staggered entrance for list sections.
+private struct SoftAppear: ViewModifier {
+    let delay: Double
+    @State private var shown = false
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(shown ? 1 : 0)
+            .offset(y: shown ? 0 : 14)
+            .onAppear {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.85).delay(delay)) {
+                    shown = true
+                }
+            }
+    }
+}
+
+extension View {
+    func softAppear(delay: Double = 0) -> some View { modifier(SoftAppear(delay: delay)) }
+}
+
 // Time-of-day flavor for the nook window and player wash.
 enum SoftDaypart {
     case dawn, day, dusk, night

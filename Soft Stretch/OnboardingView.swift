@@ -9,8 +9,8 @@ struct OnboardingView: View {
          "A little companion who moves with you in real time — every stretch, every breath, side by side."),
         ("onb_glow", "See what's working",
          "Buddy's body glows warm exactly where the stretch works, so you always know what you should feel."),
-        ("onb_daily", "Five soft minutes a day",
-         "Short 5-10 minute routines for mornings, desks and sleepy evenings. No reps, no pressure — just ease.")
+        ("onb_daily", "Grow a friendship",
+         "Every session earns friendship xp — Buddy unlocks new looks, and the nook you share fills with keepsakes. Five soft minutes a day is plenty.")
     ]
 
     var body: some View {

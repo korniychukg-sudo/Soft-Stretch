@@ -93,15 +93,24 @@ struct RootView: View {
                 selectedTab = index
             }
         }) {
-            VStack(spacing: 3) {
-                SoftIcon(kind: icon, size: 23,
-                         color: active ? SoftTheme.coral : SoftTheme.ink.opacity(0.36))
-                Text(label)
-                    .font(SoftTheme.body(10, active ? .bold : .medium))
-                    .foregroundColor(active ? SoftTheme.coral : SoftTheme.ink.opacity(0.4))
+            ZStack {
+                if active {
+                    Capsule()
+                        .fill(SoftTheme.coral.opacity(0.12))
+                        .frame(height: 46)
+                        .padding(.horizontal, 4)
+                }
+                VStack(spacing: 3) {
+                    SoftIcon(kind: icon, size: 23,
+                             color: active ? SoftTheme.coral : SoftTheme.ink.opacity(0.36))
+                    Text(label)
+                        .font(SoftTheme.body(10, active ? .bold : .medium))
+                        .foregroundColor(active ? SoftTheme.coral : SoftTheme.ink.opacity(0.4))
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 2)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: active)
         }
         .buttonStyle(SoftPressStyle())
     }
