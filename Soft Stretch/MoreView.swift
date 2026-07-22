@@ -41,6 +41,24 @@ struct MoreView: View {
 
                 SoftCard {
                     VStack(spacing: 0) {
+                        NavigationLink(destination: BuddyStudioView()) {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                        .fill(SoftTheme.coral.opacity(0.14))
+                                        .frame(width: 38, height: 38)
+                                    SoftIcon(kind: .heart, size: 19, color: SoftTheme.coral)
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Meet Buddy").font(SoftTheme.body(15, .semibold)).foregroundColor(SoftTheme.ink)
+                                    Text("Friendship, skins and keepsakes").font(SoftTheme.body(12)).foregroundColor(SoftTheme.inkSoft)
+                                }
+                                Spacer()
+                                SoftIcon(kind: .chevronRight, size: 15, color: SoftTheme.ink.opacity(0.3))
+                            }
+                        }
+                        .buttonStyle(SoftPressStyle())
+                        Divider().background(SoftTheme.line).padding(.vertical, 8)
                         rowButton(icon: .shield, tint: SoftTheme.sky,
                                   title: "Privacy Policy",
                                   subtitle: "How your data is handled") {
