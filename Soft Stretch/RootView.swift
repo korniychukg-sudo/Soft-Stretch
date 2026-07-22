@@ -1,9 +1,18 @@
 import SwiftUI
 
+// A player session request: plain routine or a specific program day.
+struct PlayerLaunch: Identifiable {
+    let routine: Routine
+    var programID: String? = nil
+    var programDay: Int? = nil
+    var id: String { routine.id + "-" + String(programDay ?? -1) }
+}
+
 struct RootView: View {
     @EnvironmentObject var store: StretchStore
+    @EnvironmentObject var companion: CompanionStore
     @State private var selectedTab = 0
-    @State private var activePlayer: Routine? = nil
+    @State private var activePlayer: PlayerLaunch? = nil
 
     var body: some View {
         ZStack {
@@ -19,7 +28,8 @@ struct RootView: View {
                             NavigationView { HomeView(startRoutine: startRoutine) }
                                 .navigationViewStyle(StackNavigationViewStyle())
                         case 1:
-                            NavigationView { RoutinesView(startRoutine: startRoutine) }
+                            NavigationView { RoutinesView(startRoutine: startRoutine,
+                                                          startProgramDay: startProgramDay) }
                                 .navigationViewStyle(StackNavigationViewStyle())
                         case 2:
                             NavigationView { LibraryView() }
@@ -38,15 +48,24 @@ struct RootView: View {
                 }
             }
         }
-        .fullScreenCover(item: $activePlayer) { routine in
-            PlayerView(routine: routine)
+        .fullScreenCover(item: $activePlayer) { launch in
+            PlayerView(routine: launch.routine,
+                       programID: launch.programID,
+                       programDay: launch.programDay)
                 .environmentObject(store)
+                .environmentObject(companion)
         }
     }
 
     private func startRoutine(_ routine: Routine) {
         SoftHaptics.step(store)
-        activePlayer = routine
+        activePlayer = PlayerLaunch(routine: routine)
+    }
+
+    private func startProgramDay(_ program: StretchProgram, _ day: ProgramDay) {
+        guard let routine = RoutineLibrary.byID[day.routineID] else { return }
+        SoftHaptics.step(store)
+        activePlayer = PlayerLaunch(routine: routine, programID: program.id, programDay: day.day)
     }
 
     private var tabBar: some View {

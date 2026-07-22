@@ -195,6 +195,35 @@ struct ConfettiBurst: View {
     }
 }
 
+// Pill segmented control used on the Routines tab.
+struct SoftSegmented: View {
+    let items: [String]
+    @Binding var selection: Int
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(Array(items.enumerated()), id: \.offset) { i, item in
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { selection = i }
+                }) {
+                    Text(item)
+                        .font(SoftTheme.body(13, selection == i ? .bold : .medium))
+                        .foregroundColor(selection == i ? .white : SoftTheme.inkSoft)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            Capsule().fill(selection == i ? SoftTheme.coral : Color.clear)
+                        )
+                }
+                .buttonStyle(SoftPressStyle())
+            }
+        }
+        .padding(4)
+        .background(Capsule().fill(SoftTheme.card)
+            .shadow(color: SoftTheme.cardShadow, radius: 6, x: 0, y: 3))
+    }
+}
+
 // Rounded toggle row for settings.
 struct SoftToggleRow: View {
     let title: String

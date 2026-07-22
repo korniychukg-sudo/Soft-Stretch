@@ -3,19 +3,26 @@ import SwiftUI
 struct RoutinesView: View {
     @EnvironmentObject var store: StretchStore
     let startRoutine: (Routine) -> Void
+    let startProgramDay: (StretchProgram, ProgramDay) -> Void
+
+    @State private var segment = 0
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
                 SectionHeader(title: "Routines",
-                              subtitle: "Follow along with Buddy, 5-10 minutes each")
+                              subtitle: "Follow along with Buddy")
                     .padding(.top, 8)
 
-                ForEach(RoutineLibrary.all) { routine in
-                    NavigationLink(destination: RoutineDetailView(routine: routine, startRoutine: startRoutine)) {
-                        RoutineCard(routine: routine, isFavorite: store.isFavorite(routine.id))
-                    }
-                    .buttonStyle(SoftPressStyle())
+                SoftSegmented(items: ["Routines", "Programs", "My Own"], selection: $segment)
+
+                switch segment {
+                case 0:
+                    routineList
+                case 1:
+                    ProgramsListView(startProgramDay: startProgramDay)
+                default:
+                    MyRoutinesSection(startRoutine: startRoutine)
                 }
             }
             .padding(.horizontal, SoftTheme.screenPad)
@@ -25,6 +32,17 @@ struct RoutinesView: View {
         }
         .background(SoftTheme.cream.ignoresSafeArea())
         .navigationBarHidden(true)
+    }
+
+    private var routineList: some View {
+        VStack(spacing: 16) {
+            ForEach(RoutineLibrary.all) { routine in
+                NavigationLink(destination: RoutineDetailView(routine: routine, startRoutine: startRoutine)) {
+                    RoutineCard(routine: routine, isFavorite: store.isFavorite(routine.id))
+                }
+                .buttonStyle(SoftPressStyle())
+            }
+        }
     }
 }
 

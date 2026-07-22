@@ -5,9 +5,12 @@ import Combine
 // timers, cues and muscle glow guide the user through the routine.
 struct PlayerView: View {
     @EnvironmentObject var store: StretchStore
+    @EnvironmentObject var companion: CompanionStore
     @Environment(\.presentationMode) var presentationMode
 
     let routine: Routine
+    var programID: String? = nil
+    var programDay: Int? = nil
 
     struct Segment {
         let stretch: Stretch
@@ -127,6 +130,9 @@ struct PlayerView: View {
         store.recordSession(routine: routine,
                             seconds: Int(totalActiveSeconds),
                             stretchCount: routine.steps.count)
+        if let pid = programID, let day = programDay {
+            companion.completeProgramDay(programID: pid, day: day)
+        }
     }
 
     private func closeEarly() {

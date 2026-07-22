@@ -14,6 +14,9 @@
 		SS0000000000000000000105 /* StretchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000005 /* StretchModels.swift */; };
 		SS0000000000000000000106 /* SoftIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000006 /* SoftIcons.swift */; };
 		SS0000000000000000000107 /* StretchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000007 /* StretchStore.swift */; };
+		SS0000000000000000000137 /* RoutineBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000037 /* RoutineBuilderView.swift */; };
+		SS0000000000000000000136 /* ProgramsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000036 /* ProgramsView.swift */; };
+		SS0000000000000000000135 /* ProgramLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000035 /* ProgramLibrary.swift */; };
 		SS0000000000000000000134 /* BuddyStudioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000034 /* BuddyStudioView.swift */; };
 		SS0000000000000000000133 /* BuddyNookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000033 /* BuddyNookView.swift */; };
 		SS0000000000000000000132 /* BuddyOutfits.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000032 /* BuddyOutfits.swift */; };
@@ -41,6 +44,9 @@
 		SS0000000000000000000005 /* StretchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchModels.swift; sourceTree = "<group>"; };
 		SS0000000000000000000006 /* SoftIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftIcons.swift; sourceTree = "<group>"; };
 		SS0000000000000000000007 /* StretchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchStore.swift; sourceTree = "<group>"; };
+		SS0000000000000000000037 /* RoutineBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineBuilderView.swift; sourceTree = "<group>"; };
+		SS0000000000000000000036 /* ProgramsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramsView.swift; sourceTree = "<group>"; };
+		SS0000000000000000000035 /* ProgramLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramLibrary.swift; sourceTree = "<group>"; };
 		SS0000000000000000000034 /* BuddyStudioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuddyStudioView.swift; sourceTree = "<group>"; };
 		SS0000000000000000000033 /* BuddyNookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuddyNookView.swift; sourceTree = "<group>"; };
 		SS0000000000000000000032 /* BuddyOutfits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuddyOutfits.swift; sourceTree = "<group>"; };
@@ -91,6 +97,9 @@
 				SS0000000000000000000005 /* StretchModels.swift */,
 				SS0000000000000000000006 /* SoftIcons.swift */,
 				SS0000000000000000000007 /* StretchStore.swift */,
+				SS0000000000000000000037 /* RoutineBuilderView.swift */,
+				SS0000000000000000000036 /* ProgramsView.swift */,
+				SS0000000000000000000035 /* ProgramLibrary.swift */,
 				SS0000000000000000000034 /* BuddyStudioView.swift */,
 				SS0000000000000000000033 /* BuddyNookView.swift */,
 				SS0000000000000000000032 /* BuddyOutfits.swift */,
@@ -198,6 +207,9 @@
 				SS0000000000000000000105 /* StretchModels.swift in Sources */,
 				SS0000000000000000000106 /* SoftIcons.swift in Sources */,
 				SS0000000000000000000107 /* StretchStore.swift in Sources */,
+				SS0000000000000000000137 /* RoutineBuilderView.swift in Sources */,
+				SS0000000000000000000136 /* ProgramsView.swift in Sources */,
+				SS0000000000000000000135 /* ProgramLibrary.swift in Sources */,
 				SS0000000000000000000134 /* BuddyStudioView.swift in Sources */,
 				SS0000000000000000000133 /* BuddyNookView.swift in Sources */,
 				SS0000000000000000000132 /* BuddyOutfits.swift in Sources */,
