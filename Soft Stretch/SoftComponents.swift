@@ -171,7 +171,7 @@ struct ConfettiBurst: View {
             Canvas { context, size in
                 guard active else { return }
                 let t = timeline.date.timeIntervalSinceReferenceDate
-                for i in 0..<46 {
+                for i in 0..<56 {
                     // Deterministic pseudo-random per particle
                     let seed = CGFloat((i * 2654435761) % 1000) / 1000
                     let seed2 = CGFloat((i * 40503) % 1000) / 1000
@@ -181,13 +181,24 @@ struct ConfettiBurst: View {
                     let y = size.height * CGFloat(phase) * 1.05 - 20
                     let s = 5 + seed2 * 6
                     let color = colors[i % colors.count]
-                    let rect = CGRect(x: x, y: y, width: s, height: s * (0.6 + seed * 0.8))
                     var ctx = context
-                    ctx.translateBy(x: rect.midX, y: rect.midY)
+                    ctx.translateBy(x: x + s / 2, y: y + s / 2)
                     ctx.rotate(by: .radians(Double(seed * 6 + CGFloat(t) * (1 + seed2 * 2))))
-                    ctx.fill(Path(roundedRect: CGRect(x: -rect.width / 2, y: -rect.height / 2,
-                                                      width: rect.width, height: rect.height), cornerRadius: 2),
-                             with: .color(color.opacity(0.85)))
+                    switch i % 3 {
+                    case 0:
+                        // Capsule flake
+                        let h = s * (0.6 + seed * 0.8)
+                        ctx.fill(Path(roundedRect: CGRect(x: -s / 2, y: -h / 2, width: s, height: h),
+                                      cornerRadius: 2),
+                                 with: .color(color.opacity(0.85)))
+                    case 1:
+                        // Round dot
+                        ctx.fill(Path(ellipseIn: CGRect(x: -s / 2, y: -s / 2, width: s * 0.8, height: s * 0.8)),
+                                 with: .color(color.opacity(0.85)))
+                    default:
+                        // Tiny sparkle star
+                        drawSparkle(ctx, at: .zero, r: s * 0.62, color: color.opacity(0.9))
+                    }
                 }
             }
         }

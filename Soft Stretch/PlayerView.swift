@@ -27,6 +27,7 @@ struct PlayerView: View {
     @State private var countIn: Int = 3
     @State private var finished = false
     @State private var recorded = false
+    @State private var areaSecondsAcc: [String: Double] = [:]
 
     private let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
 
@@ -46,6 +47,7 @@ struct PlayerView: View {
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
+            companion.lastReward = nil
         }
         .onReceive(timer) { _ in tick() }
     }
@@ -56,8 +58,10 @@ struct PlayerView: View {
 
     private var backgroundGradient: LinearGradient {
         let tint = current?.stretch.area.tint ?? SoftTheme.sage
+        let daypart = SoftDaypart.current()
         return LinearGradient(
-            colors: [SoftTheme.cream, tint.opacity(0.16), SoftTheme.cream],
+            colors: [SoftTheme.cream, daypart.skyBottom.opacity(0.18),
+                     tint.opacity(0.16), SoftTheme.cream],
             startPoint: .top, endPoint: .bottom)
     }
 
@@ -95,8 +99,13 @@ struct PlayerView: View {
         }
         elapsedInSegment += 0.1
         totalActiveSeconds += 0.1
-        if let seg = current, elapsedInSegment >= Double(seg.seconds) {
-            advance()
+        if let seg = current {
+            // fullBody never appears on stretches; guard anyway.
+            let area = seg.stretch.area == .fullBody ? BodyArea.backCore : seg.stretch.area
+            areaSecondsAcc[area.rawValue, default: 0] += 0.1
+            if elapsedInSegment >= Double(seg.seconds) {
+                advance()
+            }
         }
     }
 
@@ -129,10 +138,22 @@ struct PlayerView: View {
         SoftHaptics.success(store)
         store.recordSession(routine: routine,
                             seconds: Int(totalActiveSeconds),
-                            stretchCount: routine.steps.count)
+                            stretchCount: routine.steps.count,
+                            areaSeconds: areaSecondsAcc.mapValues { Int($0) })
         if let pid = programID, let day = programDay {
             companion.completeProgramDay(programID: pid, day: day)
         }
+        awardFriendship()
+    }
+
+    private func awardFriendship() {
+        let hadStreakYesterday: Bool = {
+            guard let y = Calendar.current.date(byAdding: .day, value: -1, to: Date()) else { return false }
+            return !store.sessions(on: y).isEmpty
+        }()
+        // recordSession already ran, so >1 today means this extends a streak day.
+        companion.award(seconds: Int(totalActiveSeconds),
+                        streakActive: hadStreakYesterday || store.sessions(on: Date()).count > 1)
     }
 
     private func closeEarly() {
@@ -141,7 +162,9 @@ struct PlayerView: View {
             recorded = true
             store.recordSession(routine: routine,
                                 seconds: Int(totalActiveSeconds),
-                                stretchCount: segmentIndex + 1)
+                                stretchCount: segmentIndex + 1,
+                                areaSeconds: areaSecondsAcc.mapValues { Int($0) })
+            awardFriendship()
         }
         presentationMode.wrappedValue.dismiss()
     }
@@ -227,7 +250,8 @@ struct PlayerView: View {
             if let seg = current {
                 AnimatedBuddy(stretch: seg.stretch,
                               mirrored: seg.mirrored,
-                              reduceMotion: store.settings.reduceMotion)
+                              reduceMotion: store.settings.reduceMotion,
+                              outfit: companion.outfit)
                     .padding(8)
                     .opacity(countIn > 0 ? 0.35 : 1)
                     .animation(.easeOut(duration: 0.3), value: countIn > 0)
@@ -397,6 +421,22 @@ struct PlayerView: View {
                     }
                     .padding(.horizontal, SoftTheme.screenPad)
 
+                    if let reward = companion.lastReward {
+                        XPTallyCard(reward: reward)
+                            .padding(.horizontal, SoftTheme.screenPad)
+                        if reward.newLevel > reward.oldLevel {
+                            LevelUpCard(newLevel: reward.newLevel,
+                                        onEquip: { equipFreshReward(reward.newLevel) })
+                                .padding(.horizontal, SoftTheme.screenPad)
+                                .onAppear { companion.markCelebrated(reward.newLevel) }
+                        }
+                    }
+                    if let day = programDay, let pid = programID,
+                       let program = ProgramLibrary.byID(pid) {
+                        SoftPill(text: "Day \(day) of \(program.name) complete",
+                                 tint: program.tint)
+                    }
+
                     if !store.freshBadges.isEmpty {
                         VStack(spacing: 10) {
                             Text("NEW BADGE" + (store.freshBadges.count > 1 ? "S" : ""))
@@ -454,5 +494,109 @@ struct PlayerView: View {
         p.armRaiseR = 150
         p.headTilt = 4
         return p
+    }
+
+    private func equipFreshReward(_ level: Int) {
+        guard let reward = RewardTable.reward(at: level) else { return }
+        switch reward.kind {
+        case .skin(let id): companion.equipSkin(id)
+        case .accessory(let id): companion.equipAccessory(id)
+        }
+        SoftHaptics.success(store)
+    }
+}
+
+// "+N xp" count-up card on the finish screen.
+struct XPTallyCard: View {
+    let reward: SessionReward
+    @State private var shown = 0
+    private let timer = Timer.publish(every: 0.06, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                Circle().fill(SoftTheme.coral.opacity(0.14)).frame(width: 42, height: 42)
+                SoftIcon(kind: .heartFill, size: 20, color: SoftTheme.coral)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text("FRIENDSHIP")
+                    .font(SoftTheme.body(10, .bold)).foregroundColor(SoftTheme.coral).kerning(1.3)
+                Text("+\(shown) xp with Buddy")
+                    .font(SoftTheme.display(18)).foregroundColor(SoftTheme.ink)
+            }
+            Spacer()
+            Text(Friendship.levelName(reward.newLevel))
+                .font(SoftTheme.body(12, .semibold)).foregroundColor(SoftTheme.inkSoft)
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .fill(SoftTheme.card).shadow(color: SoftTheme.cardShadow, radius: 8, x: 0, y: 4))
+        .onReceive(timer) { _ in
+            if shown < reward.gained { shown += 1 }
+        }
+    }
+}
+
+// Level-up ceremony card with the fresh reward and an equip shortcut.
+struct LevelUpCard: View {
+    let newLevel: Int
+    let onEquip: () -> Void
+    @State private var equipped = false
+
+    private var rewardTitle: String {
+        RewardTable.reward(at: newLevel)?.title ?? "A new keepsake"
+    }
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Canvas { ctx, size in
+                drawSparkle(ctx, at: CGPoint(x: size.width / 2 - 26, y: 12), r: 5, color: .white.opacity(0.9))
+                drawSparkle(ctx, at: CGPoint(x: size.width / 2, y: 7), r: 7, color: .white)
+                drawSparkle(ctx, at: CGPoint(x: size.width / 2 + 26, y: 13), r: 4, color: .white.opacity(0.8))
+            }
+            .frame(height: 20)
+            Text("LEVEL \(newLevel)")
+                .font(SoftTheme.body(11, .bold))
+                .foregroundColor(.white.opacity(0.85))
+                .kerning(1.6)
+            Text(Friendship.levelName(newLevel))
+                .font(SoftTheme.display(22))
+                .foregroundColor(.white)
+            Text("Unlocked: \(rewardTitle)")
+                .font(SoftTheme.body(14, .semibold))
+                .foregroundColor(.white.opacity(0.95))
+            Text("...and something new appeared in Buddy's nook")
+                .font(SoftTheme.body(12))
+                .foregroundColor(.white.opacity(0.8))
+            if equipped {
+                Text("Equipped")
+                    .font(SoftTheme.body(13, .bold))
+                    .foregroundColor(SoftTheme.coralDeep)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 8)
+                    .background(Capsule().fill(Color.white.opacity(0.9)))
+            } else {
+                Button(action: {
+                    onEquip()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { equipped = true }
+                }) {
+                    Text("Equip now")
+                        .font(SoftTheme.body(13, .bold))
+                        .foregroundColor(SoftTheme.coralDeep)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 8)
+                        .background(Capsule().fill(Color.white))
+                }
+                .buttonStyle(SoftPressStyle())
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .background(
+            RoundedRectangle(cornerRadius: SoftTheme.cardCorner, style: .continuous)
+                .fill(LinearGradient(colors: [SoftTheme.coral, SoftTheme.rose],
+                                     startPoint: .topLeading, endPoint: .bottomTrailing))
+                .shadow(color: SoftTheme.coral.opacity(0.35), radius: 10, x: 0, y: 5)
+        )
     }
 }
