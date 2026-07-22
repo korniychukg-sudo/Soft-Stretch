@@ -1,0 +1,341 @@
+import SwiftUI
+
+// Buddy — the mint stretch companion. Drawn entirely in Canvas from a
+// BuddyPose skeleton via forward kinematics, so every stretch is a real
+// animated movement, not a static picture. Working muscles glow warm.
+
+struct BuddyRig {
+    // Design space is 320 x 360; the canvas scales it to fit.
+    static let designSize = CGSize(width: 320, height: 360)
+
+    let pose: BuddyPose
+    let facing: BuddyFacing
+    let groundLevel: CGFloat
+
+    // Proportions
+    private let torsoLen: CGFloat = 66
+    private let neckLen: CGFloat = 9
+    private let headR: CGFloat = 31
+    private let upperArm: CGFloat = 36
+    private let foreArm: CGFloat = 31
+    private let thigh: CGFloat = 41
+    private let shin: CGFloat = 38
+    private let shoulderSpread: CGFloat = 24
+    private let hipSpread: CGFloat = 12
+
+    struct Joints {
+        var hip = CGPoint.zero
+        var hipL = CGPoint.zero, hipR = CGPoint.zero
+        var chest = CGPoint.zero
+        var neck = CGPoint.zero
+        var head = CGPoint.zero
+        var shoulderL = CGPoint.zero, shoulderR = CGPoint.zero
+        var elbowL = CGPoint.zero, elbowR = CGPoint.zero
+        var handL = CGPoint.zero, handR = CGPoint.zero
+        var kneeL = CGPoint.zero, kneeR = CGPoint.zero
+        var footL = CGPoint.zero, footR = CGPoint.zero
+        var spineAngle: CGFloat = -90
+        var chestAngle: CGFloat = -90
+        var headAngle: CGFloat = -90
+    }
+
+    private static func rad(_ deg: CGFloat) -> CGFloat { deg * .pi / 180 }
+
+    private static func offset(_ p: CGPoint, _ deg: CGFloat, _ len: CGFloat) -> CGPoint {
+        CGPoint(x: p.x + cos(rad(deg)) * len, y: p.y + sin(rad(deg)) * len)
+    }
+
+    var joints: Joints {
+        var j = Joints()
+        let floorY: CGFloat = 322 - groundLevel
+        // Hip sits so that straight legs reach the floor.
+        let standHipY = floorY - (thigh + shin) - 8
+        j.hip = CGPoint(x: 160 + pose.hipX, y: standHipY + pose.hipY)
+
+        // Spine
+        j.spineAngle = -90 + pose.torsoLean
+        j.chest = Self.offset(j.hip, j.spineAngle, torsoLen * 0.55)
+        j.chestAngle = j.spineAngle + pose.chestBend
+        j.neck = Self.offset(j.chest, j.chestAngle, torsoLen * 0.45)
+        j.headAngle = j.chestAngle + pose.headTilt
+        j.head = Self.offset(j.neck, j.headAngle, neckLen + headR * 0.86)
+
+        // Shoulders hang off the neck point, perpendicular to the chest.
+        let perp = j.chestAngle + 90
+        let spread = facing == .front ? shoulderSpread : shoulderSpread * 0.28
+        j.shoulderL = Self.offset(j.neck, perp, -spread)
+        j.shoulderR = Self.offset(j.neck, perp, spread)
+
+        // Arms. "Hanging down along the torso" is chestAngle + 180.
+        let hang = j.chestAngle + 180
+        let upperDirL: CGFloat
+        let upperDirR: CGFloat
+        let foreDirL: CGFloat
+        let foreDirR: CGFloat
+        if facing == .front {
+            // Left limb = screen-left; raising moves it outward (-x, i.e. +deg).
+            upperDirL = hang + pose.armRaiseL
+            upperDirR = hang - pose.armRaiseR
+            foreDirL = upperDirL - pose.elbowL
+            foreDirR = upperDirR + pose.elbowR
+        } else {
+            // Side view faces +x; raising swings the arm forward.
+            upperDirL = hang - pose.armRaiseL
+            upperDirR = hang - pose.armRaiseR
+            foreDirL = upperDirL - pose.elbowL
+            foreDirR = upperDirR - pose.elbowR
+        }
+        j.elbowL = Self.offset(j.shoulderL, upperDirL, upperArm)
+        j.handL = Self.offset(j.elbowL, foreDirL, foreArm)
+        j.elbowR = Self.offset(j.shoulderR, upperDirR, upperArm)
+        j.handR = Self.offset(j.elbowR, foreDirR, foreArm)
+
+        // Legs from the hip line.
+        let hipPerp = j.spineAngle + 90
+        let hSpread = facing == .front ? hipSpread : hipSpread * 0.3
+        j.hipL = Self.offset(j.hip, hipPerp, -hSpread)
+        j.hipR = Self.offset(j.hip, hipPerp, hSpread)
+        let legDirL: CGFloat
+        let legDirR: CGFloat
+        let shinDirL: CGFloat
+        let shinDirR: CGFloat
+        if facing == .front {
+            legDirL = 90 + pose.legOutL
+            legDirR = 90 - pose.legOutR
+            shinDirL = legDirL - pose.kneeL
+            shinDirR = legDirR + pose.kneeR
+        } else {
+            legDirL = 90 - pose.legOutL
+            legDirR = 90 - pose.legOutR
+            shinDirL = legDirL + pose.kneeL
+            shinDirR = legDirR + pose.kneeR
+        }
+        j.kneeL = Self.offset(j.hipL, legDirL, thigh)
+        j.footL = Self.offset(j.kneeL, shinDirL, shin)
+        j.kneeR = Self.offset(j.hipR, legDirR, thigh)
+        j.footR = Self.offset(j.kneeR, shinDirR, shin)
+        return j
+    }
+
+    // Segment (or spot) for a muscle zone, used to place the glow.
+    func glowSegments(_ zone: MuscleZone, _ j: Joints) -> [(CGPoint, CGPoint)] {
+        let perp = j.spineAngle + 90
+        switch zone {
+        case .neck:
+            return [(j.neck, Self.offset(j.neck, j.headAngle, neckLen + 8))]
+        case .shoulderL:
+            return [(Self.offset(j.neck, perp, -6), j.shoulderL)]
+        case .shoulderR:
+            return [(Self.offset(j.neck, perp, 6), j.shoulderR)]
+        case .upperArmL: return [(j.shoulderL, j.elbowL)]
+        case .upperArmR: return [(j.shoulderR, j.elbowR)]
+        case .forearmL: return [(j.elbowL, j.handL)]
+        case .forearmR: return [(j.elbowR, j.handR)]
+        case .chest:
+            return [(Self.offset(j.chest, perp, -14), Self.offset(j.chest, perp, 14))]
+        case .spine:
+            return [(j.hip, j.neck)]
+        case .sideL:
+            return [(Self.offset(j.hip, perp, -20), Self.offset(j.neck, perp, -16))]
+        case .sideR:
+            return [(Self.offset(j.hip, perp, 20), Self.offset(j.neck, perp, 16))]
+        case .hipL: return [(j.hipL, Self.offset(j.hipL, 90, 10))]
+        case .hipR: return [(j.hipR, Self.offset(j.hipR, 90, 10))]
+        case .thighL: return [(j.hipL, j.kneeL)]
+        case .thighR: return [(j.hipR, j.kneeR)]
+        case .calfL: return [(j.kneeL, j.footL)]
+        case .calfR: return [(j.kneeR, j.footR)]
+        }
+    }
+}
+
+struct BuddyCanvas: View {
+    let pose: BuddyPose
+    let facing: BuddyFacing
+    let groundLevel: CGFloat
+    let muscles: [MuscleZone]
+    let glowPhase: CGFloat        // 0...1 pulsing driver
+    var showMat: Bool = true
+
+    var body: some View {
+        Canvas { context, size in
+            let design = BuddyRig.designSize
+            let scale = min(size.width / design.width, size.height / design.height)
+            let dx = (size.width - design.width * scale) / 2
+            let dy = (size.height - design.height * scale) / 2
+            context.translateBy(x: dx, y: dy)
+            context.scaleBy(x: scale, y: scale)
+
+            let rig = BuddyRig(pose: pose, facing: facing, groundLevel: groundLevel)
+            let j = rig.joints
+            let floorY: CGFloat = 322 - groundLevel
+
+            // Mat + soft shadow
+            if showMat {
+                let mat = Path(roundedRect: CGRect(x: 52, y: floorY - 2, width: 216, height: 16), cornerRadius: 8)
+                context.fill(mat, with: .color(SoftTheme.mat))
+                let matEdge = Path(roundedRect: CGRect(x: 52, y: floorY + 8, width: 216, height: 6), cornerRadius: 3)
+                context.fill(matEdge, with: .color(SoftTheme.mat.opacity(0.6)))
+            }
+            let shadowW: CGFloat = 130 - abs(pose.hipY) * 0.15
+            let shadow = Path(ellipseIn: CGRect(x: j.hip.x - shadowW / 2, y: floorY - 7, width: shadowW, height: 18))
+            context.fill(shadow, with: .color(SoftTheme.ink.opacity(0.10)))
+
+            // Muscle glow underlay (blurred, pulsing)
+            if !muscles.isEmpty {
+                let pulse = 0.55 + 0.45 * sin(glowPhase * .pi * 2)
+                var glowCtx = context
+                glowCtx.addFilter(.blur(radius: 7))
+                for zone in muscles {
+                    for seg in rig.glowSegments(zone, j) {
+                        var p = Path()
+                        p.move(to: seg.0)
+                        p.addLine(to: seg.1)
+                        glowCtx.stroke(p, with: .color(SoftTheme.muscleGlow.opacity(0.35 + 0.4 * pulse)),
+                                       style: StrokeStyle(lineWidth: 30, lineCap: .round))
+                    }
+                }
+            }
+
+            let back = SoftTheme.buddyBodyDeep
+            let front = SoftTheme.buddyBody
+
+            // Back limbs first (side view shows depth; front view uses same tint)
+            let backTint = facing == .side ? back : front
+            drawLeg(context, hip: j.hipL, knee: j.kneeL, foot: j.footL, color: backTint)
+            drawArm(context, shoulder: j.shoulderL, elbow: j.elbowL, hand: j.handL, color: backTint)
+
+            // Torso
+            var torso = Path()
+            torso.move(to: j.hip)
+            torso.addQuadCurve(to: j.neck, control: j.chest)
+            let torsoW: CGFloat = facing == .front ? 46 : 40
+            context.stroke(torso, with: .color(front), style: StrokeStyle(lineWidth: torsoW, lineCap: .round))
+            // Belly for the soft pear silhouette
+            let belly = Path(ellipseIn: CGRect(x: j.hip.x - 27, y: j.hip.y - 24, width: 54, height: 46))
+            context.fill(belly, with: .color(front))
+
+            // Front limbs
+            drawLeg(context, hip: j.hipR, knee: j.kneeR, foot: j.footR, color: front)
+
+            // Head
+            let headRect = CGRect(x: j.head.x - 31, y: j.head.y - 29, width: 62, height: 58)
+            context.fill(Path(ellipseIn: headRect), with: .color(front))
+            drawFace(context, j: j)
+
+            drawArm(context, shoulder: j.shoulderR, elbow: j.elbowR, hand: j.handR, color: front)
+
+            // Muscle sparkles on top so the glow reads even mid-limb
+            if !muscles.isEmpty {
+                let pulse = 0.5 + 0.5 * sin(glowPhase * .pi * 2)
+                for zone in muscles {
+                    for seg in rig.glowSegments(zone, j) {
+                        let mid = CGPoint(x: (seg.0.x + seg.1.x) / 2, y: (seg.0.y + seg.1.y) / 2)
+                        let r: CGFloat = 3 + 2 * pulse
+                        let dot = Path(ellipseIn: CGRect(x: mid.x - r, y: mid.y - r, width: r * 2, height: r * 2))
+                        context.fill(dot, with: .color(.white.opacity(0.55 + 0.35 * pulse)))
+                    }
+                }
+            }
+        }
+    }
+
+    private func drawArm(_ context: GraphicsContext, shoulder: CGPoint, elbow: CGPoint, hand: CGPoint, color: Color) {
+        var p = Path()
+        p.move(to: shoulder)
+        p.addLine(to: elbow)
+        p.addLine(to: hand)
+        context.stroke(p, with: .color(color), style: StrokeStyle(lineWidth: 17, lineCap: .round, lineJoin: .round))
+        let mitt = Path(ellipseIn: CGRect(x: hand.x - 10.5, y: hand.y - 10.5, width: 21, height: 21))
+        context.fill(mitt, with: .color(color))
+    }
+
+    private func drawLeg(_ context: GraphicsContext, hip: CGPoint, knee: CGPoint, foot: CGPoint, color: Color) {
+        var p = Path()
+        p.move(to: hip)
+        p.addLine(to: knee)
+        p.addLine(to: foot)
+        context.stroke(p, with: .color(color), style: StrokeStyle(lineWidth: 19, lineCap: .round, lineJoin: .round))
+        // Little rounded boot
+        let boot = Path(ellipseIn: CGRect(x: foot.x - 12, y: foot.y - 9, width: 26, height: 19))
+        context.fill(boot, with: .color(color))
+    }
+
+    private func drawFace(_ context: GraphicsContext, j: BuddyRig.Joints) {
+        let c = j.head
+        let ink = SoftTheme.ink.opacity(0.82)
+        if facing == .front {
+            let drift = pose.headTurn * 5
+            for sx in [CGFloat(-11), 11] {
+                let eye = Path(ellipseIn: CGRect(x: c.x + sx + drift - 3.2, y: c.y - 6, width: 6.4, height: 8.6))
+                context.fill(eye, with: .color(ink))
+            }
+            var smile = Path()
+            smile.move(to: CGPoint(x: c.x - 7 + drift, y: c.y + 9))
+            smile.addQuadCurve(to: CGPoint(x: c.x + 7 + drift, y: c.y + 9),
+                               control: CGPoint(x: c.x + drift, y: c.y + 15))
+            context.stroke(smile, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
+            for sx in [CGFloat(-19), 19] {
+                let cheek = Path(ellipseIn: CGRect(x: c.x + sx - 5, y: c.y + 5, width: 10, height: 6.5))
+                context.fill(cheek, with: .color(SoftTheme.buddyCheek.opacity(0.75)))
+            }
+        } else {
+            // Profile looks toward +x
+            let eye = Path(ellipseIn: CGRect(x: c.x + 12 - 3.2, y: c.y - 6 + pose.headTurn * 4, width: 6.4, height: 8.6))
+            context.fill(eye, with: .color(ink))
+            var smile = Path()
+            smile.move(to: CGPoint(x: c.x + 14, y: c.y + 8))
+            smile.addQuadCurve(to: CGPoint(x: c.x + 23, y: c.y + 5),
+                               control: CGPoint(x: c.x + 20, y: c.y + 11))
+            context.stroke(smile, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
+            let cheek = Path(ellipseIn: CGRect(x: c.x + 6, y: c.y + 4, width: 10, height: 6.5))
+            context.fill(cheek, with: .color(SoftTheme.buddyCheek.opacity(0.75)))
+        }
+    }
+}
+
+// Live follow-along buddy: drives the stretch's keyframes on a clock.
+struct AnimatedBuddy: View {
+    let stretch: Stretch
+    var mirrored: Bool = false
+    var reduceMotion: Bool = false
+    var showMat: Bool = true
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: reduceMotion ? 1.0 / 20 : 1.0 / 40)) { timeline in
+            let now = timeline.date.timeIntervalSinceReferenceDate
+            let muscles = mirrored ? stretch.muscles.map { $0.mirrored } : stretch.muscles
+            BuddyCanvas(pose: livePose(now: now),
+                        facing: stretch.facing,
+                        groundLevel: stretch.groundLevel,
+                        muscles: muscles,
+                        glowPhase: CGFloat((now / 1.6).truncatingRemainder(dividingBy: 1)),
+                        showMat: showMat)
+        }
+    }
+
+    private func livePose(now: TimeInterval) -> BuddyPose {
+        let cycleT = CGFloat((now / stretch.cycleSeconds).truncatingRemainder(dividingBy: 1))
+        let base = stretch.pose(at: cycleT)
+        var pose = mirrored ? base.mirrored : base
+        // Breathing micro-bob layered on every pose
+        pose.hipY += CGFloat(sin(now * 1.5)) * 1.6 * pose.breathe
+        return pose
+    }
+}
+
+// Static buddy for cards and small previews (fixed frame of the stretch).
+struct BuddyPreview: View {
+    let stretch: Stretch
+    var frameT: CGFloat = 0.45
+    var showGlow: Bool = true
+
+    var body: some View {
+        BuddyCanvas(pose: stretch.pose(at: frameT),
+                    facing: stretch.facing,
+                    groundLevel: stretch.groundLevel,
+                    muscles: showGlow ? stretch.muscles : [],
+                    glowPhase: 0.25,
+                    showMat: false)
+    }
+}
