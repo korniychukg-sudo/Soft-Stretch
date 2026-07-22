@@ -14,6 +14,7 @@
 		SS0000000000000000000105 /* StretchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000005 /* StretchModels.swift */; };
 		SS0000000000000000000106 /* SoftIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000006 /* SoftIcons.swift */; };
 		SS0000000000000000000107 /* StretchStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000007 /* StretchStore.swift */; };
+		SS0000000000000000000131 /* CompanionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000031 /* CompanionStore.swift */; };
 		SS0000000000000000000108 /* PoseLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000008 /* PoseLibrary.swift */; };
 		SS0000000000000000000109 /* BuddyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000009 /* BuddyView.swift */; };
 		SS0000000000000000000110 /* SoftComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000010 /* SoftComponents.swift */; };
@@ -37,6 +38,7 @@
 		SS0000000000000000000005 /* StretchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchModels.swift; sourceTree = "<group>"; };
 		SS0000000000000000000006 /* SoftIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftIcons.swift; sourceTree = "<group>"; };
 		SS0000000000000000000007 /* StretchStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchStore.swift; sourceTree = "<group>"; };
+		SS0000000000000000000031 /* CompanionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionStore.swift; sourceTree = "<group>"; };
 		SS0000000000000000000008 /* PoseLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseLibrary.swift; sourceTree = "<group>"; };
 		SS0000000000000000000009 /* BuddyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuddyView.swift; sourceTree = "<group>"; };
 		SS0000000000000000000010 /* SoftComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftComponents.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				SS0000000000000000000005 /* StretchModels.swift */,
 				SS0000000000000000000006 /* SoftIcons.swift */,
 				SS0000000000000000000007 /* StretchStore.swift */,
+				SS0000000000000000000031 /* CompanionStore.swift */,
 				SS0000000000000000000008 /* PoseLibrary.swift */,
 				SS0000000000000000000009 /* BuddyView.swift */,
 				SS0000000000000000000010 /* SoftComponents.swift */,
@@ -186,6 +189,7 @@
 				SS0000000000000000000105 /* StretchModels.swift in Sources */,
 				SS0000000000000000000106 /* SoftIcons.swift in Sources */,
 				SS0000000000000000000107 /* StretchStore.swift in Sources */,
+				SS0000000000000000000131 /* CompanionStore.swift in Sources */,
 				SS0000000000000000000108 /* PoseLibrary.swift in Sources */,
 				SS0000000000000000000109 /* BuddyView.swift in Sources */,
 				SS0000000000000000000110 /* SoftComponents.swift in Sources */,

@@ -4,6 +4,7 @@ import SwiftUI
 struct SoftStretchApp: App {
     @State private var stretchGateReady: Bool? = nil
     @StateObject private var store = StretchStore()
+    @StateObject private var companion = CompanionStore()
 
     private let stretchSourceLink = "https://example.com"
     private let stretchCheckDomain = "example"
@@ -19,6 +20,7 @@ struct SoftStretchApp: App {
                     } else {
                         RootView()
                             .environmentObject(store)
+                            .environmentObject(companion)
                     }
                 } else {
                     SoftLaunchScreen()
