@@ -156,6 +156,8 @@ struct BuddyCanvas: View {
     let muscles: [MuscleZone]
     let glowPhase: CGFloat        // 0...1 pulsing driver
     var showMat: Bool = true
+    var outfit: BuddyOutfit = .classic
+    var mood: BuddyMood = .content
 
     var body: some View {
         Canvas { context, size in
@@ -165,133 +167,245 @@ struct BuddyCanvas: View {
             let dy = (size.height - design.height * scale) / 2
             context.translateBy(x: dx, y: dy)
             context.scaleBy(x: scale, y: scale)
+            renderBuddy(context, pose: pose, facing: facing, groundLevel: groundLevel,
+                        muscles: muscles, glowPhase: glowPhase, showMat: showMat,
+                        outfit: outfit, mood: mood)
+        }
+    }
+}
 
-            let rig = BuddyRig(pose: pose, facing: facing, groundLevel: groundLevel)
-            let j = rig.joints
-            let floorY: CGFloat = 322 - groundLevel
+// Draws Buddy into any GraphicsContext already scaled to the 320x360 design
+// space — shared by BuddyCanvas, the home nook and the studio previews.
+func renderBuddy(_ context: GraphicsContext, pose: BuddyPose, facing: BuddyFacing,
+                 groundLevel: CGFloat, muscles: [MuscleZone], glowPhase: CGFloat,
+                 showMat: Bool, outfit: BuddyOutfit = .classic, mood: BuddyMood = .content) {
+    let rig = BuddyRig(pose: pose, facing: facing, groundLevel: groundLevel)
+    let j = rig.joints
+    let floorY: CGFloat = 322 - groundLevel
+    let skin = BuddySkins.byID(outfit.skinID)
 
-            // Mat + soft shadow
-            if showMat {
-                let mat = Path(roundedRect: CGRect(x: 52, y: floorY - 2, width: 216, height: 16), cornerRadius: 8)
-                context.fill(mat, with: .color(SoftTheme.mat))
-                let matEdge = Path(roundedRect: CGRect(x: 52, y: floorY + 8, width: 216, height: 6), cornerRadius: 3)
-                context.fill(matEdge, with: .color(SoftTheme.mat.opacity(0.6)))
-            }
-            let shadowW: CGFloat = 130 - abs(pose.hipY) * 0.15
-            let shadow = Path(ellipseIn: CGRect(x: j.hip.x - shadowW / 2, y: floorY - 7, width: shadowW, height: 18))
-            context.fill(shadow, with: .color(SoftTheme.ink.opacity(0.10)))
+    // Mat + soft shadow
+    if showMat {
+        let mat = Path(roundedRect: CGRect(x: 52, y: floorY - 2, width: 216, height: 16), cornerRadius: 8)
+        context.fill(mat, with: .color(SoftTheme.mat))
+        let matEdge = Path(roundedRect: CGRect(x: 52, y: floorY + 8, width: 216, height: 6), cornerRadius: 3)
+        context.fill(matEdge, with: .color(SoftTheme.mat.opacity(0.6)))
+    }
+    let shadowW: CGFloat = 130 - abs(pose.hipY) * 0.15
+    let shadow = Path(ellipseIn: CGRect(x: j.hip.x - shadowW / 2, y: floorY - 7, width: shadowW, height: 18))
+    context.fill(shadow, with: .color(SoftTheme.ink.opacity(0.10)))
 
-            // Muscle glow underlay (blurred, pulsing)
-            if !muscles.isEmpty {
-                let pulse = 0.55 + 0.45 * sin(glowPhase * .pi * 2)
-                var glowCtx = context
-                glowCtx.addFilter(.blur(radius: 7))
-                for zone in muscles {
-                    for seg in rig.glowSegments(zone, j) {
-                        var p = Path()
-                        p.move(to: seg.0)
-                        p.addLine(to: seg.1)
-                        glowCtx.stroke(p, with: .color(SoftTheme.muscleGlow.opacity(0.35 + 0.4 * pulse)),
-                                       style: StrokeStyle(lineWidth: 30, lineCap: .round))
-                    }
-                }
-            }
-
-            let back = SoftTheme.buddyBodyDeep
-            let front = SoftTheme.buddyBody
-
-            // Back limbs first (side view shows depth; front view uses same tint)
-            let backTint = facing == .side ? back : front
-            drawLeg(context, hip: j.hipL, knee: j.kneeL, foot: j.footL, color: backTint)
-            drawArm(context, shoulder: j.shoulderL, elbow: j.elbowL, hand: j.handL, color: backTint)
-
-            // Torso
-            var torso = Path()
-            torso.move(to: j.hip)
-            torso.addQuadCurve(to: j.neck, control: j.chest)
-            let torsoW: CGFloat = facing == .front ? 46 : 40
-            context.stroke(torso, with: .color(front), style: StrokeStyle(lineWidth: torsoW, lineCap: .round))
-            // Belly for the soft pear silhouette
-            let belly = Path(ellipseIn: CGRect(x: j.hip.x - 27, y: j.hip.y - 24, width: 54, height: 46))
-            context.fill(belly, with: .color(front))
-
-            // Front limbs
-            drawLeg(context, hip: j.hipR, knee: j.kneeR, foot: j.footR, color: front)
-
-            // Head
-            let headRect = CGRect(x: j.head.x - 31, y: j.head.y - 29, width: 62, height: 58)
-            context.fill(Path(ellipseIn: headRect), with: .color(front))
-            drawFace(context, j: j)
-
-            drawArm(context, shoulder: j.shoulderR, elbow: j.elbowR, hand: j.handR, color: front)
-
-            // Muscle sparkles on top so the glow reads even mid-limb
-            if !muscles.isEmpty {
-                let pulse = 0.5 + 0.5 * sin(glowPhase * .pi * 2)
-                for zone in muscles {
-                    for seg in rig.glowSegments(zone, j) {
-                        let mid = CGPoint(x: (seg.0.x + seg.1.x) / 2, y: (seg.0.y + seg.1.y) / 2)
-                        let r: CGFloat = 3 + 2 * pulse
-                        let dot = Path(ellipseIn: CGRect(x: mid.x - r, y: mid.y - r, width: r * 2, height: r * 2))
-                        context.fill(dot, with: .color(.white.opacity(0.55 + 0.35 * pulse)))
-                    }
-                }
+    // Muscle glow underlay (blurred, pulsing)
+    if !muscles.isEmpty {
+        let pulse = 0.55 + 0.45 * sin(glowPhase * .pi * 2)
+        var glowCtx = context
+        glowCtx.addFilter(.blur(radius: 7))
+        for zone in muscles {
+            for seg in rig.glowSegments(zone, j) {
+                var p = Path()
+                p.move(to: seg.0)
+                p.addLine(to: seg.1)
+                glowCtx.stroke(p, with: .color(SoftTheme.muscleGlow.opacity(0.35 + 0.4 * pulse)),
+                               style: StrokeStyle(lineWidth: 30, lineCap: .round))
             }
         }
     }
 
-    private func drawArm(_ context: GraphicsContext, shoulder: CGPoint, elbow: CGPoint, hand: CGPoint, color: Color) {
-        var p = Path()
-        p.move(to: shoulder)
-        p.addLine(to: elbow)
-        p.addLine(to: hand)
-        context.stroke(p, with: .color(color), style: StrokeStyle(lineWidth: 17, lineCap: .round, lineJoin: .round))
-        let mitt = Path(ellipseIn: CGRect(x: hand.x - 10.5, y: hand.y - 10.5, width: 21, height: 21))
-        context.fill(mitt, with: .color(color))
+    let back = skin.deep
+    let front = skin.body
+
+    // Back limbs first (side view shows depth; front view uses same tint)
+    let backTint = facing == .side ? back : front
+    buddyDrawLeg(context, hip: j.hipL, knee: j.kneeL, foot: j.footL, color: backTint)
+    buddyDrawArm(context, shoulder: j.shoulderL, elbow: j.elbowL, hand: j.handL, color: backTint)
+
+    // Torso
+    var torso = Path()
+    torso.move(to: j.hip)
+    torso.addQuadCurve(to: j.neck, control: j.chest)
+    let torsoW: CGFloat = facing == .front ? 46 : 40
+    context.stroke(torso, with: .color(front), style: StrokeStyle(lineWidth: torsoW, lineCap: .round))
+    // Belly for the soft pear silhouette
+    let belly = Path(ellipseIn: CGRect(x: j.hip.x - 27, y: j.hip.y - 24, width: 54, height: 46))
+    context.fill(belly, with: .color(front))
+
+    // Front limbs
+    buddyDrawLeg(context, hip: j.hipR, knee: j.kneeR, foot: j.footR, color: front)
+
+    // Head
+    let headRect = CGRect(x: j.head.x - 31, y: j.head.y - 29, width: 62, height: 58)
+    context.fill(Path(ellipseIn: headRect), with: .color(front))
+    buddyDrawFace(context, j: j, facing: facing, pose: pose, skin: skin, mood: mood)
+
+    buddyDrawArm(context, shoulder: j.shoulderR, elbow: j.elbowR, hand: j.handR, color: front)
+
+    // Muscle sparkles on top so the glow reads even mid-limb
+    if !muscles.isEmpty {
+        let pulse = 0.5 + 0.5 * sin(glowPhase * .pi * 2)
+        for zone in muscles {
+            for seg in rig.glowSegments(zone, j) {
+                let mid = CGPoint(x: (seg.0.x + seg.1.x) / 2, y: (seg.0.y + seg.1.y) / 2)
+                let r: CGFloat = 3 + 2 * pulse
+                let dot = Path(ellipseIn: CGRect(x: mid.x - r, y: mid.y - r, width: r * 2, height: r * 2))
+                context.fill(dot, with: .color(.white.opacity(0.55 + 0.35 * pulse)))
+            }
+        }
     }
 
-    private func drawLeg(_ context: GraphicsContext, hip: CGPoint, knee: CGPoint, foot: CGPoint, color: Color) {
-        var p = Path()
-        p.move(to: hip)
-        p.addLine(to: knee)
-        p.addLine(to: foot)
-        context.stroke(p, with: .color(color), style: StrokeStyle(lineWidth: 19, lineCap: .round, lineJoin: .round))
-        // Little rounded boot
-        let boot = Path(ellipseIn: CGRect(x: foot.x - 12, y: foot.y - 9, width: 26, height: 19))
-        context.fill(boot, with: .color(color))
+    // Wardrobe on top of everything
+    if let acc = outfit.accessoryID {
+        BuddyAccessoryDrawer.draw(acc, in: context, joints: j, skin: skin)
     }
+    // Sleepy mood: little z z drifting above the head
+    if mood == .sleepy {
+        let zink = SoftTheme.ink.opacity(0.4)
+        for (i, s) in [CGFloat(9), 6].enumerated() {
+            let p = CGPoint(x: j.head.x + 42 + CGFloat(i) * 12,
+                            y: j.head.y - 24 - CGFloat(i) * 14 - glowPhase * 6)
+            var z = Path()
+            z.move(to: CGPoint(x: p.x - s / 2, y: p.y - s / 2))
+            z.addLine(to: CGPoint(x: p.x + s / 2, y: p.y - s / 2))
+            z.addLine(to: CGPoint(x: p.x - s / 2, y: p.y + s / 2))
+            z.addLine(to: CGPoint(x: p.x + s / 2, y: p.y + s / 2))
+            z.closeSubpath()
+            context.stroke(z, with: .color(zink),
+                           style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+        }
+    }
+}
 
-    private func drawFace(_ context: GraphicsContext, j: BuddyRig.Joints) {
-        let c = j.head
-        let ink = SoftTheme.ink.opacity(0.82)
-        if facing == .front {
-            let drift = pose.headTurn * 5
+private func buddyDrawArm(_ context: GraphicsContext, shoulder: CGPoint, elbow: CGPoint, hand: CGPoint, color: Color) {
+    var p = Path()
+    p.move(to: shoulder)
+    p.addLine(to: elbow)
+    p.addLine(to: hand)
+    context.stroke(p, with: .color(color), style: StrokeStyle(lineWidth: 17, lineCap: .round, lineJoin: .round))
+    let mitt = Path(ellipseIn: CGRect(x: hand.x - 10.5, y: hand.y - 10.5, width: 21, height: 21))
+    context.fill(mitt, with: .color(color))
+}
+
+private func buddyDrawLeg(_ context: GraphicsContext, hip: CGPoint, knee: CGPoint, foot: CGPoint, color: Color) {
+    var p = Path()
+    p.move(to: hip)
+    p.addLine(to: knee)
+    p.addLine(to: foot)
+    context.stroke(p, with: .color(color), style: StrokeStyle(lineWidth: 19, lineCap: .round, lineJoin: .round))
+    // Little rounded boot
+    let boot = Path(ellipseIn: CGRect(x: foot.x - 12, y: foot.y - 9, width: 26, height: 19))
+    context.fill(boot, with: .color(color))
+}
+
+private func buddyDrawFace(_ context: GraphicsContext, j: BuddyRig.Joints,
+                           facing: BuddyFacing, pose: BuddyPose,
+                           skin: BuddySkin, mood: BuddyMood) {
+    let c = j.head
+    let ink = SoftTheme.ink.opacity(0.82)
+    if facing == .front {
+        let drift = pose.headTurn * 5
+        switch mood {
+        case .content, .proud:
             for sx in [CGFloat(-11), 11] {
                 let eye = Path(ellipseIn: CGRect(x: c.x + sx + drift - 3.2, y: c.y - 6, width: 6.4, height: 8.6))
                 context.fill(eye, with: .color(ink))
             }
+        case .sleepy:
+            for sx in [CGFloat(-11), 11] {
+                var lid = Path()
+                lid.move(to: CGPoint(x: c.x + sx - 4 + drift, y: c.y - 1))
+                lid.addQuadCurve(to: CGPoint(x: c.x + sx + 4 + drift, y: c.y - 1),
+                                 control: CGPoint(x: c.x + sx + drift, y: c.y + 2.5))
+                context.stroke(lid, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
+            }
+        case .happy:
+            for sx in [CGFloat(-11), 11] {
+                var arc = Path()
+                arc.move(to: CGPoint(x: c.x + sx - 4 + drift, y: c.y - 2))
+                arc.addQuadCurve(to: CGPoint(x: c.x + sx + 4 + drift, y: c.y - 2),
+                                 control: CGPoint(x: c.x + sx + drift, y: c.y - 8))
+                context.stroke(arc, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
+            }
+        }
+        switch mood {
+        case .content:
             var smile = Path()
             smile.move(to: CGPoint(x: c.x - 7 + drift, y: c.y + 9))
             smile.addQuadCurve(to: CGPoint(x: c.x + 7 + drift, y: c.y + 9),
                                control: CGPoint(x: c.x + drift, y: c.y + 15))
             context.stroke(smile, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
-            for sx in [CGFloat(-19), 19] {
-                let cheek = Path(ellipseIn: CGRect(x: c.x + sx - 5, y: c.y + 5, width: 10, height: 6.5))
-                context.fill(cheek, with: .color(SoftTheme.buddyCheek.opacity(0.75)))
-            }
-        } else {
-            // Profile looks toward +x
+        case .sleepy:
+            let o = Path(ellipseIn: CGRect(x: c.x - 3 + drift, y: c.y + 8, width: 6, height: 7))
+            context.stroke(o, with: .color(ink), lineWidth: 2.2)
+        case .happy:
+            var grin = Path()
+            grin.move(to: CGPoint(x: c.x - 8 + drift, y: c.y + 8))
+            grin.addQuadCurve(to: CGPoint(x: c.x + 8 + drift, y: c.y + 8),
+                              control: CGPoint(x: c.x + drift, y: c.y + 17))
+            grin.closeSubpath()
+            context.fill(grin, with: .color(ink))
+        case .proud:
+            var grin = Path()
+            grin.move(to: CGPoint(x: c.x - 9 + drift, y: c.y + 8))
+            grin.addQuadCurve(to: CGPoint(x: c.x + 9 + drift, y: c.y + 8),
+                              control: CGPoint(x: c.x + drift, y: c.y + 18))
+            context.stroke(grin, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
+            drawSparkle(context, at: CGPoint(x: c.x + 40, y: c.y - 18), r: 4, color: SoftTheme.sun)
+            drawSparkle(context, at: CGPoint(x: c.x + 46, y: c.y - 4), r: 2.6, color: SoftTheme.sun)
+        }
+        for sx in [CGFloat(-19), 19] {
+            let cheek = Path(ellipseIn: CGRect(x: c.x + sx - 5, y: c.y + 5, width: 10, height: 6.5))
+            context.fill(cheek, with: .color(skin.cheek.opacity(0.75)))
+        }
+    } else {
+        // Profile looks toward +x
+        switch mood {
+        case .content, .proud:
             let eye = Path(ellipseIn: CGRect(x: c.x + 12 - 3.2, y: c.y - 6 + pose.headTurn * 4, width: 6.4, height: 8.6))
             context.fill(eye, with: .color(ink))
+        case .sleepy:
+            var lid = Path()
+            lid.move(to: CGPoint(x: c.x + 8, y: c.y - 2))
+            lid.addQuadCurve(to: CGPoint(x: c.x + 16, y: c.y - 2),
+                             control: CGPoint(x: c.x + 12, y: c.y + 1.5))
+            context.stroke(lid, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
+        case .happy:
+            var arc = Path()
+            arc.move(to: CGPoint(x: c.x + 8, y: c.y - 3))
+            arc.addQuadCurve(to: CGPoint(x: c.x + 16, y: c.y - 3),
+                             control: CGPoint(x: c.x + 12, y: c.y - 9))
+            context.stroke(arc, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
+        }
+        switch mood {
+        case .sleepy:
+            let o = Path(ellipseIn: CGRect(x: c.x + 16, y: c.y + 6, width: 5.5, height: 6.5))
+            context.stroke(o, with: .color(ink), lineWidth: 2.2)
+        case .proud:
+            var smile = Path()
+            smile.move(to: CGPoint(x: c.x + 13, y: c.y + 9))
+            smile.addQuadCurve(to: CGPoint(x: c.x + 24, y: c.y + 4),
+                               control: CGPoint(x: c.x + 21, y: c.y + 12))
+            context.stroke(smile, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
+            drawSparkle(context, at: CGPoint(x: c.x + 34, y: c.y - 14), r: 3.4, color: SoftTheme.sun)
+        default:
             var smile = Path()
             smile.move(to: CGPoint(x: c.x + 14, y: c.y + 8))
             smile.addQuadCurve(to: CGPoint(x: c.x + 23, y: c.y + 5),
                                control: CGPoint(x: c.x + 20, y: c.y + 11))
             context.stroke(smile, with: .color(ink), style: StrokeStyle(lineWidth: 2.6, lineCap: .round))
-            let cheek = Path(ellipseIn: CGRect(x: c.x + 6, y: c.y + 4, width: 10, height: 6.5))
-            context.fill(cheek, with: .color(SoftTheme.buddyCheek.opacity(0.75)))
         }
+        let cheek = Path(ellipseIn: CGRect(x: c.x + 6, y: c.y + 4, width: 10, height: 6.5))
+        context.fill(cheek, with: .color(skin.cheek.opacity(0.75)))
     }
+}
+
+// Tiny 4-point sparkle used by moods, confetti and nook props.
+func drawSparkle(_ ctx: GraphicsContext, at p: CGPoint, r: CGFloat, color: Color) {
+    var star = Path()
+    star.move(to: CGPoint(x: p.x, y: p.y - r))
+    star.addQuadCurve(to: CGPoint(x: p.x + r, y: p.y), control: p)
+    star.addQuadCurve(to: CGPoint(x: p.x, y: p.y + r), control: p)
+    star.addQuadCurve(to: CGPoint(x: p.x - r, y: p.y), control: p)
+    star.addQuadCurve(to: CGPoint(x: p.x, y: p.y - r), control: p)
+    ctx.fill(star, with: .color(color))
 }
 
 // Live follow-along buddy: drives the stretch's keyframes on a clock.
@@ -300,6 +414,7 @@ struct AnimatedBuddy: View {
     var mirrored: Bool = false
     var reduceMotion: Bool = false
     var showMat: Bool = true
+    var outfit: BuddyOutfit = .classic
 
     var body: some View {
         TimelineView(.animation(minimumInterval: reduceMotion ? 1.0 / 20 : 1.0 / 40)) { timeline in
@@ -310,7 +425,8 @@ struct AnimatedBuddy: View {
                         groundLevel: stretch.groundLevel,
                         muscles: muscles,
                         glowPhase: CGFloat((now / 1.6).truncatingRemainder(dividingBy: 1)),
-                        showMat: showMat)
+                        showMat: showMat,
+                        outfit: outfit)
         }
     }
 
@@ -329,6 +445,7 @@ struct BuddyPreview: View {
     let stretch: Stretch
     var frameT: CGFloat = 0.45
     var showGlow: Bool = true
+    var outfit: BuddyOutfit = .classic
 
     var body: some View {
         BuddyCanvas(pose: stretch.pose(at: frameT),
@@ -336,6 +453,7 @@ struct BuddyPreview: View {
                     groundLevel: stretch.groundLevel,
                     muscles: showGlow ? stretch.muscles : [],
                     glowPhase: 0.25,
-                    showMat: false)
+                    showMat: false,
+                    outfit: outfit)
     }
 }
