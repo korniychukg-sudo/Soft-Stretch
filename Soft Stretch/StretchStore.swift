@@ -5,10 +5,12 @@ final class StretchStore: ObservableObject {
     static let sessionsKey = "soft.sessions.v1"
     static let settingsKey = "soft.settings.v1"
     static let badgesKey = "soft.badges.v1"
+    static let customKey = "soft.customroutines.v1"
 
     @Published var sessions: [SessionRecord] = []
     @Published var settings = SoftSettings()
     @Published var unlockedBadges: [String: Date] = [:]
+    @Published var customRoutines: [CustomRoutine] = []
 
     // Set right after a session is recorded so the finish screen can celebrate.
     @Published var freshBadges: [BadgeSpec] = []
@@ -35,6 +37,10 @@ final class StretchStore: ObservableObject {
            let b = try? decoder.decode([String: Date].self, from: data) {
             unlockedBadges = b
         }
+        if let data = defaults.data(forKey: Self.customKey),
+           let c = try? decoder.decode([CustomRoutine].self, from: data) {
+            customRoutines = c
+        }
     }
 
     func saveAll() {
@@ -42,6 +48,23 @@ final class StretchStore: ObservableObject {
         if let data = try? encoder.encode(sessions) { defaults.set(data, forKey: Self.sessionsKey) }
         if let data = try? encoder.encode(settings) { defaults.set(data, forKey: Self.settingsKey) }
         if let data = try? encoder.encode(unlockedBadges) { defaults.set(data, forKey: Self.badgesKey) }
+        if let data = try? encoder.encode(customRoutines) { defaults.set(data, forKey: Self.customKey) }
+    }
+
+    // MARK: Custom routines
+
+    func saveCustomRoutine(_ r: CustomRoutine) {
+        if let idx = customRoutines.firstIndex(where: { $0.id == r.id }) {
+            customRoutines[idx] = r
+        } else {
+            customRoutines.append(r)
+        }
+        saveAll()
+    }
+
+    func deleteCustomRoutine(_ id: UUID) {
+        customRoutines.removeAll { $0.id == id }
+        saveAll()
     }
 
     func updateSettings(_ mutate: (inout SoftSettings) -> Void) {
@@ -116,7 +139,11 @@ final class StretchStore: ObservableObject {
         return best
     }
 
-    var distinctRoutinesTried: Set<String> { Set(sessions.map { $0.routineID }) }
+    // Only library routines count (custom "custom-…" ids are excluded).
+    var distinctRoutinesTried: Set<String> {
+        Set(sessions.map { $0.routineID })
+            .intersection(Set(RoutineLibrary.all.map { $0.id }))
+    }
 
     // Minutes per day for the last `days` days, oldest first.
     func recentMinutes(days: Int) -> [(date: Date, minutes: Int)] {

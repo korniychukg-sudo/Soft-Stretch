@@ -212,6 +212,30 @@ struct BadgeSpec: Identifiable {
     let emblem: Int      // index into the badge emblem drawings
 }
 
+// User-built routines (My Own tab).
+struct CustomStep: Codable {
+    var stretchID: String
+    var seconds: Int
+}
+
+struct CustomRoutine: Codable, Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var tintAreaRaw: String = BodyArea.fullBody.rawValue
+    var steps: [CustomStep]
+
+    var tintArea: BodyArea { BodyArea(rawValue: tintAreaRaw) ?? .fullBody }
+
+    func asRoutine() -> Routine {
+        Routine(id: "custom-\(id.uuidString)",
+                name: name,
+                subtitle: "Your own routine",
+                artName: "",
+                tintArea: tintArea,
+                steps: steps.map { RoutineStep(stretchID: $0.stretchID, secondsPerSide: $0.seconds) })
+    }
+}
+
 struct SoftSettings: Codable {
     var reduceMotion: Bool = false
     var hapticsOn: Bool = true
