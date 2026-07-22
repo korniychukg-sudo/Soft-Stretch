@@ -43,6 +43,40 @@ enum SoftTheme {
     static var cardShadow: Color { ink.opacity(0.07) }
 }
 
+// Time-of-day flavor for the nook window and player wash.
+enum SoftDaypart {
+    case dawn, day, dusk, night
+
+    static func current(hour: Int = Calendar.current.component(.hour, from: Date())) -> SoftDaypart {
+        switch hour {
+        case 5..<9: return .dawn
+        case 9..<17: return .day
+        case 17..<21: return .dusk
+        default: return .night
+        }
+    }
+
+    var skyTop: Color {
+        switch self {
+        case .dawn: return Color(red: 0.973, green: 0.800, blue: 0.694)
+        case .day: return Color(red: 0.702, green: 0.851, blue: 0.914)
+        case .dusk: return Color(red: 0.894, green: 0.635, blue: 0.588)
+        case .night: return Color(red: 0.294, green: 0.294, blue: 0.451)
+        }
+    }
+
+    var skyBottom: Color {
+        switch self {
+        case .dawn: return Color(red: 0.984, green: 0.902, blue: 0.776)
+        case .day: return Color(red: 0.851, green: 0.929, blue: 0.902)
+        case .dusk: return Color(red: 0.729, green: 0.616, blue: 0.788)
+        case .night: return Color(red: 0.412, green: 0.427, blue: 0.584)
+        }
+    }
+
+    var isDark: Bool { self == .night }
+}
+
 // Per-body-area tint used across library, covers and player chips.
 extension BodyArea {
     var tint: Color {
