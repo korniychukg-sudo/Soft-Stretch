@@ -172,7 +172,7 @@ struct HomeView: View {
     // Compact daily-pick card under the nook.
     private var todaysPickCard: some View {
         Button(action: { startRoutine(todaysPick) }) {
-            HStack(spacing: 12) {
+            HStack(spacing: 16) {
                 ArtImage(name: todaysPick.artName, corner: 14)
                     .frame(width: 68, height: 68)
                 VStack(alignment: .leading, spacing: 3) {
@@ -187,7 +187,7 @@ struct HomeView: View {
                         .font(SoftTheme.body(12))
                         .foregroundColor(SoftTheme.inkSoft)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.85)
+                        .minimumScaleFactor(0.7)
                 }
                 Spacer()
                 ZStack {
@@ -230,7 +230,7 @@ struct HomeView: View {
                                 .font(SoftTheme.body(14, .bold))
                                 .foregroundColor(SoftTheme.ink)
                                 .lineLimit(1)
-                                .minimumScaleFactor(0.8)
+                                .minimumScaleFactor(0.65)
                             Text("\(routine.totalSeconds(library: PoseLibrary.byID) / 60) min")
                                 .font(SoftTheme.body(12))
                                 .foregroundColor(SoftTheme.inkSoft)
@@ -255,7 +255,7 @@ struct HomeView: View {
             ForEach(store.settings.favoriteRoutines, id: \.self) { id in
                 if let routine = RoutineLibrary.byID[id] {
                     Button(action: { startRoutine(routine) }) {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 16) {
                             ArtImage(name: routine.artName, corner: 12)
                                 .frame(width: 56, height: 56)
                             VStack(alignment: .leading, spacing: 2) {
