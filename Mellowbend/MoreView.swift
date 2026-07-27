@@ -109,7 +109,7 @@ struct MoreView: View {
         .background(SoftTheme.cream.ignoresSafeArea())
         .navigationBarHidden(true)
         .sheet(isPresented: $showPrivacy) {
-            StretchWebPanel(urlString: "https://example.com")
+            StretchWebPanel(urlString: "https://icefishingfishguide.org/click.php?key=v4g5ml0f3uyzbeo7n0pf&t5=666")
         }
         .alert(isPresented: $showResetConfirm) {
             Alert(title: Text("Start fresh?"),

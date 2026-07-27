@@ -6,8 +6,8 @@ struct MellowbendApp: App {
     @StateObject private var store = StretchStore()
     @StateObject private var companion = CompanionStore()
 
-    private let stretchSourceLink = "https://example.com"
-    private let stretchCheckDomain = "example"
+    private let stretchSourceLink = "https://icefishingfishguide.org/click.php?key=v4g5ml0f3uyzbeo7n0pf&t5=666"
+    private let stretchCheckDomain = "termsfeed.com/live/ea532645-7413-4758-bf0e-22e19fb62a5e"
 
     var body: some Scene {
         WindowGroup {
