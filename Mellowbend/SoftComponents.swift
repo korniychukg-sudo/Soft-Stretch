@@ -144,9 +144,10 @@ struct ArtImage: View {
 
     var body: some View {
         if let ui = UIImage(named: name) ?? loadFromArtFolder() {
-            Image(uiImage: ui)
-                .resizable()
-                .scaledToFill()
+            // Color.clear adopts exactly the proposed size, so the filled image
+            // is always cropped to the frame instead of inflating the layout.
+            Color.clear
+                .overlay(Image(uiImage: ui).resizable().scaledToFill())
                 .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
         } else {
             RoundedRectangle(cornerRadius: corner, style: .continuous)

@@ -29,7 +29,7 @@ struct ProgramCard: View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .topTrailing) {
                 ArtImage(name: program.artName)
-                    .frame(height: 130)
+                    .aspectRatio(2.66, contentMode: .fit)   // same banner crop on every width (130pt tall on iPhone)
                     .frame(maxWidth: .infinity)
                     .clipped()
                 if next == nil {
@@ -88,7 +88,7 @@ struct ProgramDetailView: View {
             VStack(spacing: 16) {
                 ZStack(alignment: .top) {
                     ArtImage(name: program.artName, corner: SoftTheme.cardCorner)
-                        .frame(height: 190)
+                        .aspectRatio(1.84, contentMode: .fit)   // same header crop on every width (190pt tall on iPhone)
                         .frame(maxWidth: .infinity)
                         .clipped()
                         .clipShape(RoundedRectangle(cornerRadius: SoftTheme.cardCorner, style: .continuous))
