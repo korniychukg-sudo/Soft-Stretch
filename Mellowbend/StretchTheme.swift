@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Central palette + typography for Soft Stretch.
+// Central palette + typography for Mellowbend.
 // Fixed warm-light look, independent of the system theme.
 enum SoftTheme {
     // Base

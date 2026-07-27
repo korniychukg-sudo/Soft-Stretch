@@ -17,7 +17,7 @@ struct SoftLaunchScreen: View {
                                 muscles: [], glowPhase: 0.3, showMat: false)
                         .frame(width: 190, height: 210)
                 }
-                Text("Soft Stretch")
+                Text("Mellowbend")
                     .font(SoftTheme.display(30))
                     .foregroundColor(SoftTheme.ink)
                 Text("warming up...")

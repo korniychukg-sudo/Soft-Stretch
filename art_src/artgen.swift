@@ -1,5 +1,5 @@
-// Art generator for Soft Stretch — run once on macOS:
-//   swiftc -O artgen.swift -o artgen && ./artgen "../Soft Stretch/Art" "../Soft Stretch/Assets.xcassets/AppIcon.appiconset"
+// Art generator for Mellowbend — run once on macOS:
+//   swiftc -O artgen.swift -o artgen && ./artgen "../Mellowbend/Art" "../Mellowbend/Assets.xcassets/AppIcon.appiconset"
 // Produces routine covers, onboarding illustrations and the opaque app icon.
 
 import Foundation

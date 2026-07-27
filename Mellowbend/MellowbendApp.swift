@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct SoftStretchApp: App {
+struct MellowbendApp: App {
     @State private var stretchGateReady: Bool? = nil
     @StateObject private var store = StretchStore()
     @StateObject private var companion = CompanionStore()

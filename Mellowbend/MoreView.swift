@@ -8,7 +8,7 @@ struct MoreView: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 16) {
-                SectionHeader(title: "More", subtitle: "Make Soft Stretch yours")
+                SectionHeader(title: "More", subtitle: "Make Mellowbend yours")
                     .padding(.top, 8)
 
                 SoftCard {
@@ -80,7 +80,7 @@ struct MoreView: View {
                                         muscles: [], glowPhase: 0.3, showMat: false)
                                 .frame(width: 84, height: 100)
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Soft Stretch")
+                                Text("Mellowbend")
                                     .font(SoftTheme.display(18))
                                     .foregroundColor(SoftTheme.ink)
                                 Text("Version 1.0")
