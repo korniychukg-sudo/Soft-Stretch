@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		MB0000000000000000000101 /* MellowbendApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000001 /* MellowbendApp.swift */; };
-		MB0000000000000000000102 /* StretchWebPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000002 /* StretchWebPanel.swift */; };
-		MB0000000000000000000103 /* SoftLaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000003 /* SoftLaunchScreen.swift */; };
 		MB0000000000000000000104 /* StretchTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000004 /* StretchTheme.swift */; };
 		MB0000000000000000000105 /* StretchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000005 /* StretchModels.swift */; };
 		MB0000000000000000000106 /* SoftIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000006 /* SoftIcons.swift */; };
@@ -38,8 +36,6 @@
 
 /* Begin PBXFileReference section */
 		MB0000000000000000000001 /* MellowbendApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MellowbendApp.swift; sourceTree = "<group>"; };
-		MB0000000000000000000002 /* StretchWebPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchWebPanel.swift; sourceTree = "<group>"; };
-		MB0000000000000000000003 /* SoftLaunchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftLaunchScreen.swift; sourceTree = "<group>"; };
 		MB0000000000000000000004 /* StretchTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchTheme.swift; sourceTree = "<group>"; };
 		MB0000000000000000000005 /* StretchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchModels.swift; sourceTree = "<group>"; };
 		MB0000000000000000000006 /* SoftIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoftIcons.swift; sourceTree = "<group>"; };
@@ -91,8 +87,6 @@
 			isa = PBXGroup;
 			children = (
 				MB0000000000000000000001 /* MellowbendApp.swift */,
-				MB0000000000000000000002 /* StretchWebPanel.swift */,
-				MB0000000000000000000003 /* SoftLaunchScreen.swift */,
 				MB0000000000000000000004 /* StretchTheme.swift */,
 				MB0000000000000000000005 /* StretchModels.swift */,
 				MB0000000000000000000006 /* SoftIcons.swift */,
@@ -201,8 +195,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				MB0000000000000000000101 /* MellowbendApp.swift in Sources */,
-				MB0000000000000000000102 /* StretchWebPanel.swift in Sources */,
-				MB0000000000000000000103 /* SoftLaunchScreen.swift in Sources */,
 				MB0000000000000000000104 /* StretchTheme.swift in Sources */,
 				MB0000000000000000000105 /* StretchModels.swift in Sources */,
 				MB0000000000000000000106 /* SoftIcons.swift in Sources */,
