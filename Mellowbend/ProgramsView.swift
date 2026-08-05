@@ -1,7 +1,5 @@
 import SwiftUI
 
-// Programs tab segment: 7-day journey cards + day-by-day detail.
-
 struct ProgramsListView: View {
     @EnvironmentObject var companion: CompanionStore
     let startProgramDay: (StretchProgram, ProgramDay) -> Void
@@ -29,7 +27,7 @@ struct ProgramCard: View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .topTrailing) {
                 ArtImage(name: program.artName)
-                    .aspectRatio(2.66, contentMode: .fit)   // same banner crop on every width (130pt tall on iPhone)
+                    .aspectRatio(2.66, contentMode: .fit)
                     .frame(maxWidth: .infinity)
                     .clipped()
                 if next == nil {
@@ -88,7 +86,7 @@ struct ProgramDetailView: View {
             VStack(spacing: 16) {
                 ZStack(alignment: .top) {
                     ArtImage(name: program.artName, corner: SoftTheme.cardCorner)
-                        .aspectRatio(1.84, contentMode: .fit)   // same header crop on every width (190pt tall on iPhone)
+                        .aspectRatio(1.84, contentMode: .fit)
                         .frame(maxWidth: .infinity)
                         .clipped()
                         .clipShape(RoundedRectangle(cornerRadius: SoftTheme.cardCorner, style: .continuous))
@@ -112,7 +110,7 @@ struct ProgramDetailView: View {
                     Text(program.tagline)
                         .font(SoftTheme.body(15))
                         .foregroundColor(SoftTheme.inkSoft)
-                    // Overall progress
+
                     GeometryReader { g in
                         ZStack(alignment: .leading) {
                             Capsule().fill(program.tint.opacity(0.14))

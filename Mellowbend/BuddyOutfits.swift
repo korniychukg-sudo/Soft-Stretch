@@ -1,8 +1,5 @@
 import SwiftUI
 
-// Buddy's wardrobe: unlockable skins (recolors) and Canvas-drawn accessories
-// that track the skeleton joints, so they fit every pose.
-
 struct BuddySkin {
     let id: String
     let name: String
@@ -61,22 +58,20 @@ enum BuddyAccessories {
 }
 
 enum BuddyMood {
-    case content   // v1 face
-    case sleepy    // half-lid eyes, small o mouth, drifting z z
-    case happy     // arc eyes, open smile
-    case proud     // wide smile + sparkles by the head
+    case content
+    case sleepy
+    case happy
+    case proud
 }
 
-// All accessories are drawn AFTER the head/face so they sit on top.
-// Positions derive from the head center and headAngle so they follow tilts.
 enum BuddyAccessoryDrawer {
     static func draw(_ id: String, in ctx: GraphicsContext,
                      joints j: BuddyRig.Joints, skin: BuddySkin) {
         let c = j.head
-        // Head tilt in radians relative to upright (-90 = upright).
+
         let tilt = (j.headAngle + 90) * .pi / 180
         func onHead(_ dx: CGFloat, _ dy: CGFloat) -> CGPoint {
-            // Rotate the offset by the head tilt around the head center.
+
             let x = dx * cos(tilt) - dy * sin(tilt)
             let y = dx * sin(tilt) + dy * cos(tilt)
             return CGPoint(x: c.x + x, y: c.y + y)

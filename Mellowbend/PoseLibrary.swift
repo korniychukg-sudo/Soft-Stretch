@@ -1,9 +1,7 @@
 import SwiftUI
 
-// Every stretch Buddy knows: skeleton keyframes, muscles, cues and copy.
 enum PoseLibrary {
 
-    // Compact pose builder
     private static func p(hx: CGFloat = 0, hy: CGFloat = 0, lean: CGFloat = 0, bend: CGFloat = 0,
                           head: CGFloat = 0, turn: CGFloat = 0,
                           alL: CGFloat = 0, elL: CGFloat = 0, alR: CGFloat = 0, elR: CGFloat = 0,
@@ -25,11 +23,7 @@ enum PoseLibrary {
         PoseKeyframe(t: t, pose: pose, cue: cue)
     }
 
-    // MARK: Stretch definitions
-
     static let all: [Stretch] = [
-
-        // ---------- Neck & Shoulders ----------
 
         Stretch(id: "neck-tilt", name: "Neck Tilt", area: .neckShoulders, facing: .front,
                 bilateral: true, muscles: [.neck],
@@ -140,8 +134,6 @@ enum PoseLibrary {
                     kf(1, p(alL: 30, alR: 30))
                 ]),
 
-        // ---------- Back & Core ----------
-
         Stretch(id: "gentle-twist", name: "Gentle Twist", area: .backCore, facing: .front,
                 bilateral: false, muscles: [.spine, .sideL, .sideR],
                 muscleNames: "Spine, waist",
@@ -232,8 +224,6 @@ enum PoseLibrary {
                     kf(0.95, p()),
                     kf(1, p())
                 ]),
-
-        // ---------- Hips & Legs ----------
 
         Stretch(id: "hip-circles", name: "Hip Circles", area: .hipsLegs, facing: .front,
                 bilateral: false, muscles: [.hipL, .hipR],
@@ -344,8 +334,6 @@ enum PoseLibrary {
                     kf(1, p(hy: 74, alL: 16, elL: 52, alR: 16, elR: 52, lgL: 52, knL: 112, lgR: 52, knR: 112))
                 ]),
 
-        // ---------- Full body / breath ----------
-
         Stretch(id: "overhead-reach", name: "Overhead Reach", area: .fullBody, facing: .front,
                 bilateral: false, muscles: [.sideL, .sideR, .spine],
                 muscleNames: "Side body, spine",
@@ -383,8 +371,6 @@ enum PoseLibrary {
         all.filter { $0.area == area }
     }
 }
-
-// MARK: - Routines
 
 enum RoutineLibrary {
     static let all: [Routine] = [

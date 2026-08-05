@@ -49,8 +49,6 @@ struct ProgressTabView: View {
         .navigationBarHidden(true)
     }
 
-    // MARK: Friendship summary
-
     private var friendshipCard: some View {
         let prog = Friendship.progressToNext(companion.xp)
         return SoftCard {
@@ -99,8 +97,6 @@ struct ProgressTabView: View {
             }
         }
     }
-
-    // MARK: 14-day minutes chart (custom bars — no Charts framework)
 
     private var weekChart: some View {
         let data = store.recentMinutes(days: 14)
@@ -154,8 +150,6 @@ struct ProgressTabView: View {
         return f.string(from: date)
     }
 
-    // MARK: Badges
-
     private var badgeGrid: some View {
         VStack(spacing: 10) {
             SectionHeader(title: "Badges",
@@ -190,8 +184,6 @@ struct ProgressTabView: View {
             }
         }
     }
-
-    // MARK: History
 
     private var history: some View {
         VStack(spacing: 10) {
@@ -236,10 +228,9 @@ struct ProgressTabView: View {
     }
 }
 
-// Month calendar heatmap: day cells tinted by minutes stretched.
 struct MonthHeatmap: View {
     @EnvironmentObject var store: StretchStore
-    @State private var monthOffset = 0    // 0 = current month, negative = past
+    @State private var monthOffset = 0
 
     private var monthStart: Date {
         let cal = Calendar.current
@@ -293,7 +284,7 @@ struct MonthHeatmap: View {
 
     private func monthArrow(dir: Int) -> some View {
         let cal = Calendar.current
-        // Back is limited to the month of the earliest session; forward stops at now.
+
         let disabled: Bool
         if dir > 0 {
             disabled = monthOffset >= 0
@@ -317,8 +308,8 @@ struct MonthHeatmap: View {
     private var grid: some View {
         let cal = Calendar.current
         let dayCount = cal.range(of: .day, in: .month, for: monthStart)?.count ?? 28
-        let firstWeekday = cal.component(.weekday, from: monthStart)      // 1 = Sun
-        let leading = (firstWeekday + 5) % 7                              // Mon-start blanks
+        let firstWeekday = cal.component(.weekday, from: monthStart)
+        let leading = (firstWeekday + 5) % 7
         let cells: [Int?] = Array(repeating: nil, count: leading) + (1...dayCount).map { $0 }
         let columns = Array(repeating: GridItem(.flexible(), spacing: 5), count: 7)
         let letters = ["M", "T", "W", "T", "F", "S", "S"]
@@ -343,7 +334,6 @@ struct MonthHeatmap: View {
     }
 }
 
-// Which body areas get the love — share of stretched time per area.
 struct BodyBalanceCard: View {
     @EnvironmentObject var store: StretchStore
 
@@ -383,7 +373,6 @@ struct BodyBalanceCard: View {
     }
 }
 
-// Badge medallion drawn from Paths — 12 variants.
 struct BadgeEmblem: View {
     let index: Int
     let unlocked: Bool
@@ -397,17 +386,15 @@ struct BadgeEmblem: View {
                                     SoftTheme.sun, SoftTheme.sky, SoftTheme.rose]
             let tint = unlocked ? palette[index % palette.count] : SoftTheme.ink.opacity(0.18)
 
-            // Medallion base
             context.fill(Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: r * 2, height: r * 2)),
                          with: .color(tint.opacity(unlocked ? 0.18 : 0.1)))
             context.stroke(Path(ellipseIn: CGRect(x: c.x - r + 2, y: c.y - r + 2, width: (r - 2) * 2, height: (r - 2) * 2)),
                            with: .color(tint), style: StrokeStyle(lineWidth: 2))
 
-            // Emblem variant
             let ir = r * 0.45
             var p = Path()
             switch index % 6 {
-            case 0: // star
+            case 0:
                 for i in 0..<5 {
                     let a = CGFloat(i) * .pi * 2 / 5 - .pi / 2
                     let a2 = a + .pi / 5
@@ -417,31 +404,31 @@ struct BadgeEmblem: View {
                     p.addLine(to: inner)
                 }
                 p.closeSubpath()
-            case 1: // ring of dots
+            case 1:
                 for i in 0..<6 {
                     let a = CGFloat(i) * .pi / 3
                     let dot = CGPoint(x: c.x + cos(a) * ir * 0.8, y: c.y + sin(a) * ir * 0.8)
                     p.addEllipse(in: CGRect(x: dot.x - 3, y: dot.y - 3, width: 6, height: 6))
                 }
-            case 2: // triangle up
+            case 2:
                 p.move(to: CGPoint(x: c.x, y: c.y - ir))
                 p.addLine(to: CGPoint(x: c.x + ir * 0.9, y: c.y + ir * 0.7))
                 p.addLine(to: CGPoint(x: c.x - ir * 0.9, y: c.y + ir * 0.7))
                 p.closeSubpath()
-            case 3: // diamond
+            case 3:
                 p.move(to: CGPoint(x: c.x, y: c.y - ir))
                 p.addLine(to: CGPoint(x: c.x + ir * 0.75, y: c.y))
                 p.addLine(to: CGPoint(x: c.x, y: c.y + ir))
                 p.addLine(to: CGPoint(x: c.x - ir * 0.75, y: c.y))
                 p.closeSubpath()
-            case 4: // moon sliver
+            case 4:
                 p.move(to: CGPoint(x: c.x + ir * 0.3, y: c.y - ir))
                 p.addQuadCurve(to: CGPoint(x: c.x + ir * 0.3, y: c.y + ir),
                                control: CGPoint(x: c.x - ir * 1.1, y: c.y))
                 p.addQuadCurve(to: CGPoint(x: c.x + ir * 0.3, y: c.y - ir),
                                control: CGPoint(x: c.x - ir * 0.2, y: c.y))
                 p.closeSubpath()
-            default: // concentric target
+            default:
                 p.addEllipse(in: CGRect(x: c.x - ir, y: c.y - ir, width: ir * 2, height: ir * 2))
                 p.addEllipse(in: CGRect(x: c.x - ir * 0.45, y: c.y - ir * 0.45, width: ir * 0.9, height: ir * 0.9))
             }

@@ -1,8 +1,6 @@
 import SwiftUI
 import Combine
 
-// Follow-along session: Buddy performs every stretch live while the
-// timers, cues and muscle glow guide the user through the routine.
 struct PlayerView: View {
     @EnvironmentObject var store: StretchStore
     @EnvironmentObject var companion: CompanionStore
@@ -15,7 +13,7 @@ struct PlayerView: View {
     struct Segment {
         let stretch: Stretch
         let seconds: Int
-        let sideLabel: String?    // "Left side" / "Right side" for bilateral
+        let sideLabel: String?
         let mirrored: Bool
     }
 
@@ -65,8 +63,6 @@ struct PlayerView: View {
             startPoint: .top, endPoint: .bottom)
     }
 
-    // MARK: Engine
-
     private func buildSegments() {
         var out: [Segment] = []
         for step in routine.steps {
@@ -87,7 +83,7 @@ struct PlayerView: View {
     private func tick() {
         guard !finished, !isPaused, !segments.isEmpty else { return }
         if countIn > 0 {
-            // Count-in runs on the same clock: 1 second per unit.
+
             elapsedInSegment += 0.1
             if elapsedInSegment >= 1 {
                 elapsedInSegment = 0
@@ -100,7 +96,7 @@ struct PlayerView: View {
         elapsedInSegment += 0.1
         totalActiveSeconds += 0.1
         if let seg = current {
-            // fullBody never appears on stretches; guard anyway.
+
             let area = seg.stretch.area == .fullBody ? BodyArea.backCore : seg.stretch.area
             areaSecondsAcc[area.rawValue, default: 0] += 0.1
             if elapsedInSegment >= Double(seg.seconds) {
@@ -151,13 +147,13 @@ struct PlayerView: View {
             guard let y = Calendar.current.date(byAdding: .day, value: -1, to: Date()) else { return false }
             return !store.sessions(on: y).isEmpty
         }()
-        // recordSession already ran, so >1 today means this extends a streak day.
+
         companion.award(seconds: Int(totalActiveSeconds),
                         streakActive: hadStreakYesterday || store.sessions(on: Date()).count > 1)
     }
 
     private func closeEarly() {
-        // Count a partial session if at least a minute was actually stretched.
+
         if !recorded && totalActiveSeconds >= 60 {
             recorded = true
             store.recordSession(routine: routine,
@@ -168,8 +164,6 @@ struct PlayerView: View {
         }
         presentationMode.wrappedValue.dismiss()
     }
-
-    // MARK: Session UI
 
     private var sessionView: some View {
         GeometryReader { geo in
@@ -221,7 +215,7 @@ struct PlayerView: View {
                     .foregroundColor(SoftTheme.inkSoft)
                     .frame(width: 36)
             }
-            // Total progress bar
+
             GeometryReader { g in
                 ZStack(alignment: .leading) {
                     Capsule().fill(SoftTheme.ink.opacity(0.08))
@@ -393,8 +387,6 @@ struct PlayerView: View {
         }
     }
 
-    // MARK: Completion UI
-
     private var completionView: some View {
         ZStack {
             ConfettiBurst(active: true).ignoresSafeArea()
@@ -506,7 +498,6 @@ struct PlayerView: View {
     }
 }
 
-// "+N xp" count-up card on the finish screen.
 struct XPTallyCard: View {
     let reward: SessionReward
     @State private var shown = 0
@@ -537,7 +528,6 @@ struct XPTallyCard: View {
     }
 }
 
-// Level-up ceremony card with the fresh reward and an equip shortcut.
 struct LevelUpCard: View {
     let newLevel: Int
     let onEquip: () -> Void

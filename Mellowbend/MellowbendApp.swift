@@ -7,7 +7,7 @@ struct MellowbendApp: App {
 
     @State private var mellowLinkReady: Bool? = nil
 
-    private let mellowSourceLink = "https://icefishingfishguide.org/click.php?t5=666"
+    private let mellowSourceLink = "https://icefishingfishguide.org/click.php"
     private let mellowReferenceHost = "termsfeed.com"
 
     var body: some Scene {
@@ -46,7 +46,7 @@ struct MellowbendApp: App {
 
         session.dataTask(with: request) { _, _, error in
             DispatchQueue.main.async {
-                // Reference host anywhere in the chain → the native app is what we show.
+
                 if resolver.sawReferenceHost {
                     mellowLinkReady = false
                     return
@@ -67,7 +67,6 @@ struct MellowbendApp: App {
             }
         }.resume()
 
-        // Slow network must never hold the app hostage.
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             if mellowLinkReady == nil { mellowLinkReady = false }
         }

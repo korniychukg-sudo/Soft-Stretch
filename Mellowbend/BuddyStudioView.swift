@@ -1,6 +1,5 @@
 import SwiftUI
 
-// Buddy Studio: friendship progress + wardrobe.
 struct BuddyStudioView: View {
     @EnvironmentObject var store: StretchStore
     @EnvironmentObject var companion: CompanionStore
@@ -212,14 +211,13 @@ struct BuddyStudioView: View {
     }
 }
 
-// Small buddy-head preview wearing one accessory (for the studio grid).
 struct AccessoryMini: View {
     let accessoryID: String
     let skinID: String
 
     var body: some View {
         Canvas { ctx, size in
-            // Zoom in on the head (design-space center ~(160, 133)).
+
             let scale = size.width / 320 * 2.4
             var zoomed = ctx
             zoomed.translateBy(x: size.width / 2, y: size.height / 2 + 6)

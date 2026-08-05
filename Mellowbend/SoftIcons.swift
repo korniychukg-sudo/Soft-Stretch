@@ -1,8 +1,5 @@
 import SwiftUI
 
-// Hand-drawn Path icons — no SF Symbols anywhere in the app.
-// Every icon draws inside a unit rect and is placed via SoftIcon.
-
 enum SoftIconKind {
     case home, routines, library, progress, more
     case play, pause, skipForward, skipBack, close, chevronRight, chevronLeft
@@ -74,7 +71,7 @@ struct SoftIcon: View {
             }
 
         case .library:
-            // Little figure mid-stretch
+
             let head = Path(ellipseIn: CGRect(x: pt(0.5, 0.2).x - 0.1 * w, y: pt(0.5, 0.2).y - 0.1 * h,
                                               width: 0.2 * w, height: 0.2 * h))
             stroke(context, head)

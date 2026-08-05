@@ -1,6 +1,5 @@
 import SwiftUI
 
-// Library of all stretches, filterable by body area; each opens a live demo.
 struct LibraryView: View {
     @EnvironmentObject var store: StretchStore
     @State private var selectedArea: BodyArea? = nil
@@ -128,7 +127,6 @@ struct StretchDetailView: View {
                 }
                 .padding(.top, 8)
 
-                // Live demo stage
                 ZStack {
                     RoundedRectangle(cornerRadius: SoftTheme.cardCorner, style: .continuous)
                         .fill(

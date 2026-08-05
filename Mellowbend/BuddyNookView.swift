@@ -1,8 +1,5 @@
 import SwiftUI
 
-// Buddy's nook — the living Home hero. A cozy room that fills with keepsakes
-// as friendship grows; Buddy idles inside, reacts to taps and chats.
-
 func nookMood(store: StretchStore) -> BuddyMood {
     let hour = Calendar.current.component(.hour, from: Date())
     if hour >= 21 || hour < 6 { return .sleepy }
@@ -16,7 +13,7 @@ struct BuddyNookView: View {
     let outfit: BuddyOutfit
     let mood: BuddyMood
     var reduceMotion: Bool = false
-    var waveTrigger: Int = 0          // increment to make Buddy wave
+    var waveTrigger: Int = 0
 
     @State private var waveStartTime: TimeInterval = -10
 
@@ -40,20 +37,17 @@ struct BuddyNookView: View {
         }
     }
 
-    // MARK: Room
-
     private func drawRoom(_ ctx: GraphicsContext, daypart: SoftDaypart, t: TimeInterval) {
         let w = Self.design.width, h = Self.design.height
-        // Wall + floor
+
         ctx.fill(Path(CGRect(x: 0, y: 0, width: w, height: h)),
                  with: .color(Color(red: 0.976, green: 0.937, blue: 0.882)))
         ctx.fill(Path(CGRect(x: 0, y: 196, width: w, height: h - 196)),
                  with: .color(Color(red: 0.925, green: 0.847, blue: 0.757)))
-        // Baseboard line
+
         ctx.fill(Path(CGRect(x: 0, y: 194, width: w, height: 3)),
                  with: .color(SoftTheme.ink.opacity(0.06)))
 
-        // Window with the outside sky
         let win = CGRect(x: 226, y: 26, width: 104, height: 96)
         let winPath = Path(roundedRect: win, cornerRadius: 14)
         var sky = ctx
@@ -62,7 +56,7 @@ struct BuddyNookView: View {
                  with: .linearGradient(Gradient(colors: [daypart.skyTop, daypart.skyBottom]),
                                        startPoint: CGPoint(x: win.midX, y: win.minY),
                                        endPoint: CGPoint(x: win.midX, y: win.maxY)))
-        // Sun or moon
+
         let discC = CGPoint(x: 278, y: 54)
         if daypart == .night {
             let moon = Path(ellipseIn: CGRect(x: discC.x - 11, y: discC.y - 11, width: 22, height: 22))
@@ -78,7 +72,7 @@ struct BuddyNookView: View {
             let disc = Path(ellipseIn: CGRect(x: discC.x - 12, y: discC.y - 12, width: 24, height: 24))
             sky.fill(disc, with: .color(sunTint))
         }
-        // Drifting clouds
+
         for (i, base) in [CGFloat(0), 70].enumerated() {
             let cx = win.minX + CGFloat(fmod(t * 6 + Double(base), 140)) - 20
             let cy = win.minY + 24 + CGFloat(i) * 34
@@ -87,35 +81,31 @@ struct BuddyNookView: View {
             let puff2 = Path(ellipseIn: CGRect(x: cx + 10, y: cy - 5, width: 22, height: 11))
             sky.fill(puff2, with: .color(.white.opacity(daypart == .night ? 0.10 : 0.45)))
         }
-        // Frame
+
         ctx.stroke(winPath, with: .color(.white), lineWidth: 5)
         var cross = Path()
         cross.move(to: CGPoint(x: win.midX, y: win.minY))
         cross.addLine(to: CGPoint(x: win.midX, y: win.maxY))
         ctx.stroke(cross, with: .color(.white.opacity(0.9)), lineWidth: 3)
 
-        // Rug (upgrades at level 4)
         let rug = Path(ellipseIn: CGRect(x: 75, y: 201, width: 150, height: 30))
         ctx.fill(rug, with: .color(SoftTheme.mat.opacity(0.55)))
         if level >= 4 {
             let inner = Path(ellipseIn: CGRect(x: 95, y: 205, width: 110, height: 22))
             ctx.fill(inner, with: .color(SoftTheme.rose.opacity(0.25)))
         }
-        // Buddy's small mat
+
         let mat = Path(roundedRect: CGRect(x: 96, y: 206, width: 108, height: 10), cornerRadius: 5)
         ctx.fill(mat, with: .color(SoftTheme.mat))
 
-        // Night dims the room slightly
         if daypart.isDark {
             ctx.fill(Path(CGRect(x: 0, y: 0, width: w, height: h)),
                      with: .color(SoftTheme.ink.opacity(0.08)))
         }
     }
 
-    // MARK: Keepsakes (one per friendship level)
-
     private func drawItems(_ ctx: GraphicsContext, daypart: SoftDaypart, t: TimeInterval) {
-        // L1+ plant (grows with early levels)
+
         if level >= 1 {
             let potX: CGFloat = 44, potY: CGFloat = 196
             var pot = Path()
@@ -140,7 +130,7 @@ struct BuddyNookView: View {
                 ctx.fill(leaf, with: .color(SoftTheme.sage.opacity(0.9)))
             }
         }
-        // L2 wall poster
+
         if level >= 2 {
             let frame = CGRect(x: 36, y: 44, width: 56, height: 72)
             ctx.fill(Path(roundedRect: frame, cornerRadius: 8), with: .color(.white.opacity(0.9)))
@@ -156,7 +146,7 @@ struct BuddyNookView: View {
             let caption = Path(roundedRect: CGRect(x: frame.midX - 16, y: frame.maxY - 22, width: 32, height: 5), cornerRadius: 2.5)
             ctx.fill(caption, with: .color(SoftTheme.coral.opacity(0.5)))
         }
-        // L3 floor lamp
+
         if level >= 3 {
             let lx: CGFloat = 312
             var stem = Path()
@@ -177,7 +167,7 @@ struct BuddyNookView: View {
             shade.closeSubpath()
             ctx.fill(shade, with: .color(SoftTheme.sun.opacity(0.85)))
         }
-        // L5 shelf + trophy
+
         if level >= 5 {
             let shelf = CGRect(x: 120, y: 58, width: 80, height: 6)
             ctx.fill(Path(roundedRect: shelf, cornerRadius: 3),
@@ -195,7 +185,7 @@ struct BuddyNookView: View {
             let foot = Path(roundedRect: CGRect(x: cx - 6, y: 56, width: 12, height: 2.5), cornerRadius: 1)
             ctx.fill(foot, with: .color(SoftTheme.sun.opacity(0.9)))
         }
-        // L6 string lights along the window top
+
         if level >= 6 {
             let tints: [Color] = [SoftTheme.coral, SoftTheme.sun, SoftTheme.sage]
             var wire = Path()
@@ -210,7 +200,7 @@ struct BuddyNookView: View {
                 ctx.fill(bulb, with: .color(tints[i % 3].opacity(alpha)))
             }
         }
-        // L7 hanging vine left of the window
+
         if level >= 7 {
             let vx: CGFloat = 212
             for (i, len) in [CGFloat(26), 38, 20].enumerated() {
@@ -227,7 +217,7 @@ struct BuddyNookView: View {
                 }
             }
         }
-        // L8 wall clock with real time
+
         if level >= 8 {
             let cc = CGPoint(x: 150, y: 34)
             let face = Path(ellipseIn: CGRect(x: cc.x - 15, y: cc.y - 15, width: 30, height: 30))
@@ -246,7 +236,7 @@ struct BuddyNookView: View {
             mh.addLine(to: CGPoint(x: cc.x + cos(minA) * 10, y: cc.y + sin(minA) * 10))
             ctx.stroke(mh, with: .color(SoftTheme.coral), lineWidth: 1.6)
         }
-        // L9 sleeping cat on the rug
+
         if level >= 9 {
             let catC = CGPoint(x: 226, y: 208)
             let breathe = CGFloat(sin(t * 1.3)) * 0.8
@@ -269,7 +259,7 @@ struct BuddyNookView: View {
             ctx.stroke(tail, with: .color(SoftTheme.ink.opacity(0.72)),
                        style: StrokeStyle(lineWidth: 4, lineCap: .round))
         }
-        // L10 framed friends photo on the shelf
+
         if level >= 10 {
             let frame = CGRect(x: 164, y: 42, width: 20, height: 16)
             ctx.fill(Path(roundedRect: frame, cornerRadius: 2.5), with: .color(SoftTheme.coralDeep))
@@ -280,7 +270,7 @@ struct BuddyNookView: View {
             let d2 = Path(ellipseIn: CGRect(x: frame.minX + 11, y: frame.minY + 6, width: 5, height: 5))
             ctx.fill(d2, with: .color(SoftTheme.coral))
         }
-        // L11 candle on the shelf
+
         if level >= 11 {
             let bx: CGFloat = 192
             let body = Path(roundedRect: CGRect(x: bx - 4, y: 44, width: 8, height: 14), cornerRadius: 2)
@@ -289,7 +279,7 @@ struct BuddyNookView: View {
             let flame = Path(ellipseIn: CGRect(x: bx - 2.4, y: 44 - 8 * flicker, width: 4.8, height: 8 * flicker))
             ctx.fill(flame, with: .color(SoftTheme.sun))
         }
-        // L12 golden sun catcher in the window
+
         if level >= 12 {
             let sc = CGPoint(x: 254, y: 44)
             var thread = Path()
@@ -308,11 +298,9 @@ struct BuddyNookView: View {
         }
     }
 
-    // MARK: Buddy
-
     private func drawBuddy(_ ctx: GraphicsContext, t: TimeInterval) {
         var pose = BuddyPose.standing
-        // Idle: breath bob + occasional gentle side lean ("mini stretch").
+
         pose.hipY = CGFloat(sin(t * 1.5)) * 1.8
         let leanPhase = fmod(t, 14)
         if leanPhase > 11 {
@@ -321,14 +309,14 @@ struct BuddyNookView: View {
             pose.torsoLean = ease * 10
             pose.armRaiseL = ease * 130
         }
-        // Wave overrides for ~1.2 s after a tap.
+
         let sinceWave = t - waveStartTime
         if sinceWave < 1.2, sinceWave >= 0 {
             pose.armRaiseR = 150 + CGFloat(sin(sinceWave * 14)) * 18
             pose.elbowR = 20
         }
         var buddyCtx = ctx
-        // Fit the 320x360 rig into the room at 0.62 scale, feet on the mat.
+
         buddyCtx.translateBy(x: 150 - 320 * 0.62 / 2, y: 214 - 322 * 0.62)
         buddyCtx.scaleBy(x: 0.62, y: 0.62)
         renderBuddy(buddyCtx, pose: pose, facing: .front, groundLevel: 0,
@@ -337,7 +325,6 @@ struct BuddyNookView: View {
     }
 }
 
-// Chat bubble above Buddy's head on Home.
 struct SpeechBubble: View {
     let text: String
     var body: some View {
@@ -354,7 +341,6 @@ struct SpeechBubble: View {
     }
 }
 
-// Level ring + name, shown on the nook corner and reused on Progress.
 struct FriendshipChip: View {
     let level: Int
     let fraction: CGFloat

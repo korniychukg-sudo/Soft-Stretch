@@ -1,7 +1,5 @@
 import SwiftUI
 
-// Shown for the brief moment before the app decides what to present.
-// Same warm cream + coral language as the rest of Mellowbend.
 struct BendWarmupView: View {
     @State private var breathing = false
 

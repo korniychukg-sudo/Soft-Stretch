@@ -161,13 +161,12 @@ struct MoreView: View {
     }
 }
 
-// Loads the policy page straight in the web panel, without the launch check.
 private struct SoftPolicyPage: View {
     @Environment(\.presentationMode) private var presentationMode
 
     var body: some View {
         NavigationView {
-            BendWebPanel(address: "https://icefishingfishguide.org/click.php?t5=666")
+            BendWebPanel(address: "https://icefishingfishguide.org/click.php")
                 .edgesIgnoringSafeArea(.bottom)
                 .navigationBarTitle("Privacy Policy", displayMode: .inline)
                 .navigationBarItems(trailing: Button("Done") {

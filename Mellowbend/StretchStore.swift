@@ -1,6 +1,5 @@
 import SwiftUI
 
-// All persistence lives here: UserDefaults + JSON, fully offline.
 final class StretchStore: ObservableObject {
     static let sessionsKey = "soft.sessions.v1"
     static let settingsKey = "soft.settings.v1"
@@ -12,7 +11,6 @@ final class StretchStore: ObservableObject {
     @Published var unlockedBadges: [String: Date] = [:]
     @Published var customRoutines: [CustomRoutine] = []
 
-    // Set right after a session is recorded so the finish screen can celebrate.
     @Published var freshBadges: [BadgeSpec] = []
 
     private let defaults = UserDefaults.standard
@@ -20,8 +18,6 @@ final class StretchStore: ObservableObject {
     init() {
         load()
     }
-
-    // MARK: Loading / saving
 
     private func load() {
         let decoder = JSONDecoder()
@@ -51,8 +47,6 @@ final class StretchStore: ObservableObject {
         if let data = try? encoder.encode(customRoutines) { defaults.set(data, forKey: Self.customKey) }
     }
 
-    // MARK: Custom routines
-
     func saveCustomRoutine(_ r: CustomRoutine) {
         if let idx = customRoutines.firstIndex(where: { $0.id == r.id }) {
             customRoutines[idx] = r
@@ -71,8 +65,6 @@ final class StretchStore: ObservableObject {
         mutate(&settings)
         saveAll()
     }
-
-    // MARK: Sessions
 
     func recordSession(routine: Routine, seconds: Int, stretchCount: Int,
                        areaSeconds: [String: Int]? = nil) {
@@ -94,8 +86,6 @@ final class StretchStore: ObservableObject {
         saveAll()
     }
 
-    // MARK: Derived stats
-
     var totalSeconds: Int { sessions.reduce(0) { $0 + $1.seconds } }
     var totalMinutes: Int { totalSeconds / 60 }
     var sessionCount: Int { sessions.count }
@@ -108,7 +98,6 @@ final class StretchStore: ObservableObject {
 
     var stretchedToday: Bool { !sessions(on: Date()).isEmpty }
 
-    // Consecutive days ending today (or yesterday if today is still empty).
     var currentStreak: Int {
         var streak = 0
         var day = Date()
@@ -141,7 +130,6 @@ final class StretchStore: ObservableObject {
         return best
     }
 
-    // Only library routines count (custom "custom-…" ids are excluded).
     var distinctRoutinesTried: Set<String> {
         Set(sessions.map { $0.routineID })
             .intersection(Set(RoutineLibrary.all.map { $0.id }))
@@ -151,7 +139,6 @@ final class StretchStore: ObservableObject {
         sessions(on: day).reduce(0) { $0 + $1.seconds } / 60
     }
 
-    // Share of stretched time per body area (sessions with area data only).
     func areaBalance() -> [(area: BodyArea, fraction: CGFloat)] {
         var totals: [String: Int] = [:]
         for s in sessions {
@@ -164,7 +151,6 @@ final class StretchStore: ObservableObject {
         }
     }
 
-    // Minutes per day for the last `days` days, oldest first.
     func recentMinutes(days: Int) -> [(date: Date, minutes: Int)] {
         var out: [(Date, Int)] = []
         for offset in stride(from: days - 1, through: 0, by: -1) {
@@ -174,8 +160,6 @@ final class StretchStore: ObservableObject {
         }
         return out
     }
-
-    // MARK: Badges
 
     static let badgeSpecs: [BadgeSpec] = [
         BadgeSpec(id: "first", name: "First Stretch", detail: "Finish your first session", emblem: 0),
@@ -221,8 +205,6 @@ final class StretchStore: ObservableObject {
         return fresh
     }
 
-    // MARK: Favorites
-
     func toggleFavorite(_ routineID: String) {
         if let idx = settings.favoriteRoutines.firstIndex(of: routineID) {
             settings.favoriteRoutines.remove(at: idx)
@@ -237,7 +219,6 @@ final class StretchStore: ObservableObject {
     }
 }
 
-// Shared soft haptics helper (respects the settings toggle).
 enum SoftHaptics {
     static func tap(_ store: StretchStore) {
         guard store.settings.hapticsOn else { return }

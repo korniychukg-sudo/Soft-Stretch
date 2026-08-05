@@ -56,7 +56,7 @@ struct RoutineCard: View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .topTrailing) {
                 ArtImage(name: routine.artName)
-                    .aspectRatio(2.3, contentMode: .fit)   // same banner crop on every width (150pt tall on iPhone)
+                    .aspectRatio(2.3, contentMode: .fit)
                     .frame(maxWidth: .infinity)
                     .clipped()
                 if isFavorite {
@@ -105,7 +105,7 @@ struct RoutineDetailView: View {
             VStack(spacing: 16) {
                 ZStack(alignment: .top) {
                     ArtImage(name: routine.artName, corner: SoftTheme.cardCorner)
-                        .aspectRatio(1.67, contentMode: .fit)   // same header crop on every width (210pt tall on iPhone)
+                        .aspectRatio(1.67, contentMode: .fit)
                         .frame(maxWidth: .infinity)
                         .clipped()
                         .clipShape(RoundedRectangle(cornerRadius: SoftTheme.cardCorner, style: .continuous))

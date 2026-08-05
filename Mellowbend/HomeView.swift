@@ -19,7 +19,6 @@ struct HomeView: View {
         }
     }
 
-    // Rotates daily; leans toward the fitting routine for the time of day.
     private var todaysPick: Routine {
         let hour = Calendar.current.component(.hour, from: Date())
         if hour < 10, let r = RoutineLibrary.byID["morning"] { return r }
@@ -96,7 +95,6 @@ struct HomeView: View {
         }
     }
 
-    // Buddy's living nook — tap Buddy to say hi, chip opens the studio.
     private var nookCard: some View {
         ZStack(alignment: .topTrailing) {
             ZStack(alignment: .bottom) {
@@ -169,7 +167,6 @@ struct HomeView: View {
         return pool[(waveCount + (Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 0)) % pool.count]
     }
 
-    // Compact daily-pick card under the nook.
     private var todaysPickCard: some View {
         Button(action: { startRoutine(todaysPick) }) {
             HStack(spacing: 16) {

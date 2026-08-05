@@ -1,13 +1,7 @@
-// Art generator for Mellowbend — run once on macOS:
-//   swiftc -O artgen.swift -o artgen && ./artgen "../Mellowbend/Art" "../Mellowbend/Assets.xcassets/AppIcon.appiconset"
-// Produces routine covers, onboarding illustrations and the opaque app icon.
-
 import Foundation
 import CoreGraphics
 import ImageIO
 import UniformTypeIdentifiers
-
-// MARK: - Deterministic random
 
 struct XorShift {
     var state: UInt64
@@ -20,8 +14,6 @@ struct XorShift {
         lo + (hi - lo) * CGFloat(next() % 100_000) / 100_000
     }
 }
-
-// MARK: - Color helpers
 
 func rgb(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat = 1) -> CGColor {
     CGColor(red: r, green: g, blue: b, alpha: a)
@@ -46,11 +38,9 @@ func mix(_ a: CGColor, _ b: CGColor, _ t: CGFloat) -> CGColor {
                ca[2] + (cb[2] - ca[2]) * t)
 }
 
-// MARK: - Canvas
-
 func makeContext(_ w: Int, _ h: Int) -> CGContext {
     let cs = CGColorSpaceCreateDeviceRGB()
-    // noneSkipLast → opaque RGBX, no alpha channel in the PNG
+
     return CGContext(data: nil, width: w, height: h, bitsPerComponent: 8,
                      bytesPerRow: 0, space: cs,
                      bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
@@ -64,7 +54,6 @@ func savePNG(_ ctx: CGContext, _ url: URL) {
     print("wrote \(url.lastPathComponent)")
 }
 
-// Vertical gradient fill
 func gradient(_ ctx: CGContext, _ rect: CGRect, _ colors: [CGColor]) {
     let cs = CGColorSpaceCreateDeviceRGB()
     let locs: [CGFloat] = colors.enumerated().map { CGFloat($0.offset) / CGFloat(max(colors.count - 1, 1)) }
@@ -84,7 +73,6 @@ func radial(_ ctx: CGContext, center: CGPoint, radius: CGFloat, inner: CGColor, 
                            options: [.drawsAfterEndLocation])
 }
 
-// Per-pixel grain so the flat art feels printed (and compresses honestly).
 func grain(_ ctx: CGContext, _ w: Int, _ h: Int, seed: UInt64, strength: CGFloat = 0.055) {
     var rng = XorShift(seed: seed)
     let cell = 2
@@ -106,7 +94,7 @@ func sparkles(_ ctx: CGContext, _ rect: CGRect, count: Int, seed: UInt64, color:
         let r = rng.cg(maxR * 0.25, maxR)
         let a = rng.cg(0.15, 0.6)
         ctx.setFillColor(color.copy(alpha: a)!)
-        // four-point star
+
         let p = CGMutablePath()
         p.move(to: CGPoint(x: x, y: y + r))
         p.addQuadCurve(to: CGPoint(x: x + r, y: y), control: CGPoint(x: x + r * 0.22, y: y + r * 0.22))
@@ -139,35 +127,31 @@ func hills(_ ctx: CGContext, _ w: CGFloat, baseY: CGFloat, amp: CGFloat, color: 
     ctx.fillPath()
 }
 
-// MARK: - Buddy figure (CG version for illustrations)
-
 struct BuddySpec {
-    var lean: CGFloat = 0          // torso lean degrees, + = right
-    var armL: CGFloat = 10         // raise from hanging, + = out/up
+    var lean: CGFloat = 0
+    var armL: CGFloat = 10
     var armR: CGFloat = 10
     var elbowL: CGFloat = 0
     var elbowR: CGFloat = 0
     var headTilt: CGFloat = 0
-    var glowSide: Bool = false     // warm glow along the right side
+    var glowSide: Bool = false
     var glowArms: Bool = false
 }
 
-// `groundAt` is the point where the feet touch (the shadow line).
 func drawBuddy(_ ctx: CGContext, groundAt: CGPoint, scale s: CGFloat, spec: BuddySpec) {
     func rad(_ d: CGFloat) -> CGFloat { d * .pi / 180 }
     func off(_ p: CGPoint, _ deg: CGFloat, _ len: CGFloat) -> CGPoint {
         CGPoint(x: p.x + cos(rad(deg)) * len, y: p.y + sin(rad(deg)) * len)
     }
-    // CG y-axis is up in our flipped drawing; angles: 90 = up
+
     let hip = CGPoint(x: groundAt.x, y: groundAt.y + 84 * s)
     let spineA: CGFloat = 90 - spec.lean
     let chest = off(hip, spineA, 66 * s)
     let neck = off(hip, spineA, 118 * s)
     let head = off(neck, spineA + spec.headTilt, 52 * s)
 
-    // glow
     if spec.glowSide {
-        // Soft warm aura radiating from the stretched side (opposite the lean).
+
         let sideDir: CGFloat = spec.lean >= 0 ? -1 : 1
         let glowC = CGPoint(x: chest.x + sideDir * 40 * s, y: chest.y)
         radial(ctx, center: glowC, radius: 110 * s,
@@ -194,11 +178,9 @@ func drawBuddy(_ ctx: CGContext, groundAt: CGPoint, scale s: CGFloat, spec: Budd
         ctx.fillEllipse(in: CGRect(x: e.x - r, y: e.y - r, width: r * 2, height: r * 2))
     }
 
-    // legs
     limb(CGPoint(x: hip.x - 13 * s, y: hip.y), -90 - 4, 41 * s, -90 - 2, 38 * s, width: 19 * s, color: mintDeep)
     limb(CGPoint(x: hip.x + 13 * s, y: hip.y), -90 + 4, 41 * s, -90 + 2, 38 * s, width: 19 * s, color: mint)
 
-    // torso
     ctx.setStrokeColor(mint)
     ctx.setLineWidth(46 * s)
     ctx.move(to: hip)
@@ -207,14 +189,12 @@ func drawBuddy(_ ctx: CGContext, groundAt: CGPoint, scale s: CGFloat, spec: Budd
     ctx.setFillColor(mint)
     ctx.fillEllipse(in: CGRect(x: hip.x - 27 * s, y: hip.y - 20 * s, width: 54 * s, height: 46 * s))
 
-    // arms: hang = spineA + 180
     let hang = spineA + 180
     let shoulderL = off(neck, spineA + 90, 26 * s)
     let shoulderR = off(neck, spineA - 90, 26 * s)
     limb(shoulderL, hang - spec.armL, 36 * s, hang - spec.armL - spec.elbowL, 31 * s, width: 17 * s, color: mintDeep)
     limb(shoulderR, hang + spec.armR, 36 * s, hang + spec.armR + spec.elbowR, 31 * s, width: 17 * s, color: mint)
 
-    // head + face
     ctx.setFillColor(mint)
     ctx.fillEllipse(in: CGRect(x: head.x - 31 * s, y: head.y - 29 * s, width: 62 * s, height: 58 * s))
     ctx.setFillColor(ink.copy(alpha: 0.82)!)
@@ -233,15 +213,13 @@ func drawBuddy(_ ctx: CGContext, groundAt: CGPoint, scale s: CGFloat, spec: Budd
     }
 }
 
-// MARK: - Covers
-
 struct CoverSpec {
     let name: String
-    let colors: [CGColor]     // sky gradient bottom→top
+    let colors: [CGColor]
     let hillA: CGColor
     let hillB: CGColor
-    let orb: CGColor          // sun / moon
-    let orbY: CGFloat         // fraction of height
+    let orb: CGColor
+    let orbY: CGFloat
     let sparkle: CGColor
     let moon: Bool
     let buddy: BuddySpec
@@ -296,12 +274,11 @@ func renderCover(_ spec: CoverSpec, dir: URL, index: Int) {
     let rect = CGRect(x: 0, y: 0, width: w, height: h)
     gradient(ctx, rect, spec.colors)
 
-    // orb with halo
     let orbC = CGPoint(x: CGFloat(w) * 0.72, y: CGFloat(h) * spec.orbY)
     radial(ctx, center: orbC, radius: 260, inner: spec.orb.copy(alpha: 0.5)!, outer: spec.orb.copy(alpha: 0.0)!)
     ctx.setFillColor(spec.orb)
     if spec.moon {
-        // crescent
+
         ctx.fillEllipse(in: CGRect(x: orbC.x - 70, y: orbC.y - 70, width: 140, height: 140))
         ctx.setFillColor(spec.colors[1])
         ctx.fillEllipse(in: CGRect(x: orbC.x - 30, y: orbC.y - 56, width: 124, height: 124))
@@ -315,7 +292,6 @@ func renderCover(_ spec: CoverSpec, dir: URL, index: Int) {
     hills(ctx, CGFloat(w), baseY: CGFloat(h) * 0.34, amp: 60, color: spec.hillA.copy(alpha: 0.85)!, seed: UInt64(70 + index))
     hills(ctx, CGFloat(w), baseY: CGFloat(h) * 0.24, amp: 46, color: spec.hillB, seed: UInt64(140 + index))
 
-    // soft ground shadow + Buddy
     ctx.setFillColor(ink.copy(alpha: 0.10)!)
     ctx.fillEllipse(in: CGRect(x: CGFloat(w) * 0.30 - 150, y: CGFloat(h) * 0.16 - 26, width: 300, height: 52))
     drawBuddy(ctx, groundAt: CGPoint(x: CGFloat(w) * 0.30, y: CGFloat(h) * 0.16), scale: 2.1, spec: spec.buddy)
@@ -323,8 +299,6 @@ func renderCover(_ spec: CoverSpec, dir: URL, index: Int) {
     grain(ctx, w, h, seed: UInt64(1000 + index))
     savePNG(ctx, dir.appendingPathComponent("\(spec.name).png"))
 }
-
-// MARK: - Onboarding
 
 func renderOnboarding(dir: URL) {
     let w = 1280, h = 1480
@@ -341,7 +315,6 @@ func renderOnboarding(dir: URL) {
         let rect = CGRect(x: 0, y: 0, width: w, height: h)
         gradient(ctx, rect, spec.1)
 
-        // big soft circle stage
         radial(ctx, center: CGPoint(x: CGFloat(w) / 2, y: CGFloat(h) * 0.42), radius: CGFloat(w) * 0.52,
                inner: cream.copy(alpha: 0.75)!, outer: cream.copy(alpha: 0.0)!)
 
@@ -352,7 +325,6 @@ func renderOnboarding(dir: URL) {
         ctx.fillEllipse(in: CGRect(x: CGFloat(w) / 2 - 210, y: CGFloat(h) * 0.42 - 320, width: 420, height: 70))
         drawBuddy(ctx, groundAt: CGPoint(x: CGFloat(w) / 2, y: CGFloat(h) * 0.42 - 290), scale: 3.4, spec: spec.2)
 
-        // dotted breath ring on slide 3
         if i == 2 {
             ctx.setStrokeColor(coral.copy(alpha: 0.6)!)
             ctx.setLineWidth(10)
@@ -366,24 +338,19 @@ func renderOnboarding(dir: URL) {
     }
 }
 
-// MARK: - App icon (abstract: soft ring orb, no figure)
-
 func renderIcon(dir: URL) {
     let w = 1024, h = 1024
     let ctx = makeContext(w, h)
     let rect = CGRect(x: 0, y: 0, width: w, height: h)
 
-    // muted peach radial background
     gradient(ctx, rect, [mix(coral, cream, 0.72), mix(rose, cream, 0.55), mix(sun, cream, 0.68)])
     radial(ctx, center: CGPoint(x: 512, y: 560), radius: 620,
            inner: cream.copy(alpha: 0.55)!, outer: cream.copy(alpha: 0.0)!)
 
     let c = CGPoint(x: 512, y: 512)
 
-    // soft halo
     radial(ctx, center: c, radius: 360, inner: mint.copy(alpha: 0.35)!, outer: mint.copy(alpha: 0.0)!)
 
-    // mint orb
     let orbR: CGFloat = 208
     let cs = CGColorSpaceCreateDeviceRGB()
     let orbGrad = CGGradient(colorsSpace: cs,
@@ -396,31 +363,25 @@ func renderIcon(dir: URL) {
                            end: CGPoint(x: c.x + orbR, y: c.y - orbR), options: [])
     ctx.restoreGState()
 
-    // open arc ring around the orb (the "soft flow")
     ctx.setStrokeColor(mix(coral, rose, 0.35))
     ctx.setLineWidth(58)
     ctx.setLineCap(.round)
     ctx.addArc(center: c, radius: 318, startAngle: .pi * 0.78, endAngle: .pi * 2.14, clockwise: false)
     ctx.strokePath()
 
-    // small companion dot on the ring gap
     let dotA: CGFloat = .pi * 0.46
     let dotP = CGPoint(x: c.x + cos(dotA) * 318, y: c.y + sin(dotA) * 318)
     ctx.setFillColor(sun)
     ctx.fillEllipse(in: CGRect(x: dotP.x - 44, y: dotP.y - 44, width: 88, height: 88))
 
-    // orb highlight
     ctx.setFillColor(cream.copy(alpha: 0.35)!)
     ctx.fillEllipse(in: CGRect(x: c.x - 120, y: c.y + 30, width: 150, height: 110))
 
-    // two tiny sparkles
     sparkles(ctx, CGRect(x: 640, y: 640, width: 240, height: 220), count: 2, seed: 77, color: cream, maxR: 34)
     sparkles(ctx, CGRect(x: 160, y: 150, width: 220, height: 200), count: 1, seed: 91, color: coral, maxR: 30)
 
     savePNG(ctx, dir.appendingPathComponent("AppIcon-1024.png"))
 }
-
-// MARK: - Main
 
 let args = CommandLine.arguments
 guard args.count >= 3 else {

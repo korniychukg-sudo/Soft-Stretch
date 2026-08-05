@@ -1,7 +1,5 @@
 import SwiftUI
 
-// MARK: - Body areas & muscles
-
 enum BodyArea: String, Codable, CaseIterable, Identifiable {
     case neckShoulders
     case backCore
@@ -22,7 +20,6 @@ enum BodyArea: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-// Segments of Buddy's body that can glow while a muscle works.
 enum MuscleZone: String, Codable, CaseIterable {
     case neck
     case shoulderL, shoulderR
@@ -35,7 +32,6 @@ enum MuscleZone: String, Codable, CaseIterable {
     case thighL, thighR
     case calfL, calfR
 
-    // Mirror across the vertical axis (used when a stretch switches sides).
     var mirrored: MuscleZone {
         switch self {
         case .shoulderL: return .shoulderR
@@ -57,38 +53,30 @@ enum MuscleZone: String, Codable, CaseIterable {
     }
 }
 
-// MARK: - Buddy skeleton pose
-
 enum BuddyFacing: String, Codable {
-    case front   // facing the user — best for tilts, side bends, arm work
-    case side    // profile — best for folds, lunges, floor work
+    case front
+    case side
 }
 
-// All angles in degrees. The rig hangs from the hip point:
-// torso up from the hips, limbs attached with forward kinematics.
 struct BuddyPose {
-    var hipX: CGFloat = 0        // lateral shift of the hips
-    var hipY: CGFloat = 0        // drop of the hips (positive = lower / crouch / sit)
-    var torsoLean: CGFloat = 0   // whole spine lean, positive = toward +x
-    var chestBend: CGFloat = 0   // extra bend of the upper spine
-    var headTilt: CGFloat = 0    // head relative to chest
-    var headTurn: CGFloat = 0    // -1...1, pupils drift (front) / chin drop (side)
+    var hipX: CGFloat = 0
+    var hipY: CGFloat = 0
+    var torsoLean: CGFloat = 0
+    var chestBend: CGFloat = 0
+    var headTilt: CGFloat = 0
+    var headTurn: CGFloat = 0
 
-    // Arms: raise is measured from "hanging along the torso".
-    // Positive raise moves the arm away from the body toward +x for the
-    // right arm and -x for the left (front view), toward +x in side view.
     var armRaiseL: CGFloat = 0
     var elbowL: CGFloat = 0
     var armRaiseR: CGFloat = 0
     var elbowR: CGFloat = 0
 
-    // Legs: same convention as arms, from "standing straight down".
     var legOutL: CGFloat = 0
     var kneeL: CGFloat = 0
     var legOutR: CGFloat = 0
     var kneeR: CGFloat = 0
 
-    var breathe: CGFloat = 1     // multiplier for the idle breathing sway
+    var breathe: CGFloat = 1
 
     static let standing = BuddyPose()
 
@@ -106,7 +94,6 @@ struct BuddyPose {
         return p
     }
 
-    // Swap sides for the "other side" pass of a bilateral stretch.
     var mirrored: BuddyPose {
         var p = self
         p.hipX = -hipX
@@ -121,28 +108,25 @@ struct BuddyPose {
     }
 }
 
-// One moment inside a stretch cycle: 0...1 position plus the pose and cue.
 struct PoseKeyframe {
     let t: CGFloat
     let pose: BuddyPose
     var cue: String = ""
 }
 
-// MARK: - Stretch
-
 struct Stretch: Identifiable {
     let id: String
     let name: String
     let area: BodyArea
     let facing: BuddyFacing
-    let bilateral: Bool          // true → player runs left side then right side
+    let bilateral: Bool
     let muscles: [MuscleZone]
-    let muscleNames: String      // human label, e.g. "Hamstrings, lower back"
-    let benefit: String          // one-line why-it-feels-good
-    let howTo: [String]          // 3 short steps for the detail screen
-    let cycleSeconds: Double     // duration of one loop of the keyframes
+    let muscleNames: String
+    let benefit: String
+    let howTo: [String]
+    let cycleSeconds: Double
     let keyframes: [PoseKeyframe]
-    var groundLevel: CGFloat = 0 // 0 = standing floor, >0 raises floor line (seated/kneeling)
+    var groundLevel: CGFloat = 0
 
     func pose(at cycleT: CGFloat) -> BuddyPose {
         guard let first = keyframes.first else { return .standing }
@@ -153,7 +137,7 @@ struct Stretch: Identifiable {
             if t <= kf.t {
                 let span = max(kf.t - prev.t, 0.0001)
                 let local = (t - prev.t) / span
-                let eased = local * local * (3 - 2 * local)   // smoothstep
+                let eased = local * local * (3 - 2 * local)
                 return BuddyPose.lerp(prev.pose, kf.pose, eased)
             }
             prev = kf
@@ -171,8 +155,6 @@ struct Stretch: Identifiable {
     }
 }
 
-// MARK: - Routine
-
 struct RoutineStep {
     let stretchID: String
     let secondsPerSide: Int
@@ -182,7 +164,7 @@ struct Routine: Identifiable {
     let id: String
     let name: String
     let subtitle: String
-    let artName: String          // bundled cover illustration
+    let artName: String
     let tintArea: BodyArea
     let steps: [RoutineStep]
 
@@ -194,8 +176,6 @@ struct Routine: Identifiable {
     }
 }
 
-// MARK: - Persistence records
-
 struct SessionRecord: Codable, Identifiable {
     var id: UUID = UUID()
     let date: Date
@@ -203,7 +183,7 @@ struct SessionRecord: Codable, Identifiable {
     let routineName: String
     let seconds: Int
     let stretchCount: Int
-    // Seconds per body-area raw value; optional so v1 records keep decoding.
+
     var areaSeconds: [String: Int]? = nil
 }
 
@@ -211,10 +191,9 @@ struct BadgeSpec: Identifiable {
     let id: String
     let name: String
     let detail: String
-    let emblem: Int      // index into the badge emblem drawings
+    let emblem: Int
 }
 
-// User-built routines (My Own tab).
 struct CustomStep: Codable {
     var stretchID: String
     var seconds: Int

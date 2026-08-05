@@ -1,7 +1,5 @@
 import SwiftUI
 
-// "My Own" segment: user-built routines + the builder sheet.
-
 struct MyRoutinesSection: View {
     @EnvironmentObject var store: StretchStore
     let startRoutine: (Routine) -> Void

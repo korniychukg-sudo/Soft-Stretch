@@ -1,7 +1,5 @@
 import SwiftUI
 
-// Shared building blocks: cards, chips, rings, buttons, confetti.
-
 struct SoftCard<Content: View>: View {
     var padding: CGFloat = 16
     @ViewBuilder let content: Content
@@ -69,9 +67,8 @@ struct SoftPressStyle: ButtonStyle {
     }
 }
 
-// Circular countdown ring used in the player.
 struct CountdownRing: View {
-    let progress: CGFloat      // 0...1 remaining fraction
+    let progress: CGFloat
     var lineWidth: CGFloat = 8
     var tint: Color = SoftTheme.coral
 
@@ -87,7 +84,6 @@ struct CountdownRing: View {
     }
 }
 
-// Small stat block used on Home and Progress.
 struct StatTile: View {
     let icon: SoftIconKind
     let value: String
@@ -117,7 +113,6 @@ struct StatTile: View {
     }
 }
 
-// Section header used across tabs.
 struct SectionHeader: View {
     let title: String
     var subtitle: String? = nil
@@ -137,15 +132,13 @@ struct SectionHeader: View {
     }
 }
 
-// Bundled illustration with graceful fallback if the asset is missing.
 struct ArtImage: View {
     let name: String
     var corner: CGFloat = 0
 
     var body: some View {
         if let ui = UIImage(named: name) ?? loadFromArtFolder() {
-            // Color.clear adopts exactly the proposed size, so the filled image
-            // is always cropped to the frame instead of inflating the layout.
+
             Color.clear
                 .overlay(Image(uiImage: ui).resizable().scaledToFill())
                 .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
@@ -162,7 +155,6 @@ struct ArtImage: View {
     }
 }
 
-// Confetti burst for the completion screen.
 struct ConfettiBurst: View {
     let active: Bool
     private let colors: [Color] = [SoftTheme.coral, SoftTheme.lavender, SoftTheme.sage, SoftTheme.sun, SoftTheme.sky, SoftTheme.rose]
@@ -173,7 +165,7 @@ struct ConfettiBurst: View {
                 guard active else { return }
                 let t = timeline.date.timeIntervalSinceReferenceDate
                 for i in 0..<56 {
-                    // Deterministic pseudo-random per particle
+
                     let seed = CGFloat((i * 2654435761) % 1000) / 1000
                     let seed2 = CGFloat((i * 40503) % 1000) / 1000
                     let speed = 40 + seed * 90
@@ -187,17 +179,17 @@ struct ConfettiBurst: View {
                     ctx.rotate(by: .radians(Double(seed * 6 + CGFloat(t) * (1 + seed2 * 2))))
                     switch i % 3 {
                     case 0:
-                        // Capsule flake
+
                         let h = s * (0.6 + seed * 0.8)
                         ctx.fill(Path(roundedRect: CGRect(x: -s / 2, y: -h / 2, width: s, height: h),
                                       cornerRadius: 2),
                                  with: .color(color.opacity(0.85)))
                     case 1:
-                        // Round dot
+
                         ctx.fill(Path(ellipseIn: CGRect(x: -s / 2, y: -s / 2, width: s * 0.8, height: s * 0.8)),
                                  with: .color(color.opacity(0.85)))
                     default:
-                        // Tiny sparkle star
+
                         drawSparkle(ctx, at: .zero, r: s * 0.62, color: color.opacity(0.9))
                     }
                 }
@@ -207,7 +199,6 @@ struct ConfettiBurst: View {
     }
 }
 
-// Pill segmented control used on the Routines tab.
 struct SoftSegmented: View {
     let items: [String]
     @Binding var selection: Int
@@ -236,7 +227,6 @@ struct SoftSegmented: View {
     }
 }
 
-// Rounded toggle row for settings.
 struct SoftToggleRow: View {
     let title: String
     let subtitle: String

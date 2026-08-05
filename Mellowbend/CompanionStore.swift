@@ -1,8 +1,5 @@
 import SwiftUI
 
-// Buddy's friendship: xp, levels, unlockable looks and program progress.
-// Stored under its own key so v1 saves are never touched.
-
 struct BuddyOutfit: Equatable {
     var skinID: String = "mint"
     var accessoryID: String? = nil
@@ -10,7 +7,7 @@ struct BuddyOutfit: Equatable {
 }
 
 enum Friendship {
-    // Cumulative xp needed for levels 1...12.
+
     static let levelThresholds = [0, 10, 25, 45, 70, 100, 140, 190, 250, 320, 400, 500]
 
     static func level(for xp: Int) -> Int {
@@ -94,7 +91,6 @@ struct CompanionState: Codable {
 
     init() {}
 
-    // Tolerant decoding: any missing key falls back to its default.
     enum CodingKeys: String, CodingKey {
         case xp, equippedSkin, equippedAccessory, celebratedLevels, programDays
     }
@@ -113,7 +109,7 @@ final class CompanionStore: ObservableObject {
     static let key = "soft.companion.v1"
 
     @Published var state = CompanionState()
-    // Set right after a session so the finish screen can run the xp tally.
+
     @Published var lastReward: SessionReward? = nil
 
     private let defaults = UserDefaults.standard
@@ -164,8 +160,6 @@ final class CompanionStore: ObservableObject {
         save()
     }
 
-    // MARK: Programs
-
     func completeProgramDay(programID: String, day: Int) {
         var days = state.programDays[programID] ?? [:]
         if days[day] == nil { days[day] = Date() }
@@ -177,7 +171,6 @@ final class CompanionStore: ObservableObject {
         Set(state.programDays[programID]?.keys.map { $0 } ?? [])
     }
 
-    // First incomplete day (1-based), nil when the program is done.
     func nextDay(_ programID: String, totalDays: Int) -> Int? {
         let done = completedDays(programID)
         for d in 1...totalDays where !done.contains(d) { return d }

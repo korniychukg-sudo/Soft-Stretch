@@ -1,8 +1,6 @@
 import SwiftUI
 import WebKit
 
-// Follows a link through its full redirect chain and records whether the
-// reference host showed up anywhere along the way.
 final class MellowLinkResolver: NSObject, URLSessionTaskDelegate {
     private let referenceHost: String
 
@@ -22,7 +20,7 @@ final class MellowLinkResolver: NSObject, URLSessionTaskDelegate {
             sawReferenceHost = true
         }
         landedURL = request.url
-        // Never cut the chain short — keep following and just remember the flag.
+
         completionHandler(request)
     }
 }

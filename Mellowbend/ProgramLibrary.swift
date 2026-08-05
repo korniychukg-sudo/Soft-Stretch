@@ -1,7 +1,5 @@
 import SwiftUI
 
-// 7-day guided journeys built from the existing routine library.
-
 struct ProgramDay {
     let day: Int
     let routineID: String
@@ -13,7 +11,7 @@ struct StretchProgram: Identifiable {
     let id: String
     let name: String
     let tagline: String
-    let artName: String     // reuses a routine cover
+    let artName: String
     let tint: Color
     let days: [ProgramDay]
 }

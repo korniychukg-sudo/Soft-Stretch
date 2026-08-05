@@ -1,6 +1,5 @@
 import SwiftUI
 
-// A player session request: plain routine or a specific program day.
 struct PlayerLaunch: Identifiable {
     let routine: Routine
     var programID: String? = nil
@@ -115,5 +114,3 @@ struct RootView: View {
         .buttonStyle(SoftPressStyle())
     }
 }
-
-// Routine already conforms to Identifiable via `id`.
