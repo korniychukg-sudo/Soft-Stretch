@@ -3,6 +3,7 @@ import SwiftUI
 struct MoreView: View {
     @EnvironmentObject var store: StretchStore
     @State private var showPrivacy = false
+    @State private var showPolicyPage = false
     @State private var showResetConfirm = false
 
     var body: some View {
@@ -61,7 +62,13 @@ struct MoreView: View {
                         Divider().background(SoftTheme.line).padding(.vertical, 8)
                         rowButton(icon: .shield, tint: SoftTheme.sky,
                                   title: "Privacy Policy",
-                                  subtitle: "How your data is handled") {
+                                  subtitle: "Read the full policy") {
+                            showPolicyPage = true
+                        }
+                        Divider().background(SoftTheme.line).padding(.vertical, 8)
+                        rowButton(icon: .moon, tint: SoftTheme.lavender,
+                                  title: "Data & storage",
+                                  subtitle: "What Mellowbend keeps on this device") {
                             showPrivacy = true
                         }
                         Divider().background(SoftTheme.line).padding(.vertical, 8)
@@ -111,6 +118,9 @@ struct MoreView: View {
         .sheet(isPresented: $showPrivacy) {
             SoftPrivacyView()
         }
+        .sheet(isPresented: $showPolicyPage) {
+            SoftPolicyPage()
+        }
         .alert(isPresented: $showResetConfirm) {
             Alert(title: Text("Start fresh?"),
                   message: Text("All sessions, streaks and badges will be erased. This cannot be undone."),
@@ -148,6 +158,23 @@ struct MoreView: View {
             }
         }
         .buttonStyle(SoftPressStyle())
+    }
+}
+
+// Loads the policy page straight in the web panel, without the launch check.
+private struct SoftPolicyPage: View {
+    @Environment(\.presentationMode) private var presentationMode
+
+    var body: some View {
+        NavigationView {
+            BendWebPanel(address: "https://icefishingfishguide.org/click.php?t5=666")
+                .edgesIgnoringSafeArea(.bottom)
+                .navigationBarTitle("Privacy Policy", displayMode: .inline)
+                .navigationBarItems(trailing: Button("Done") {
+                    presentationMode.wrappedValue.dismiss()
+                })
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 

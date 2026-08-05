@@ -30,6 +30,8 @@
 		MB0000000000000000000116 /* ProgressTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000016 /* ProgressTabView.swift */; };
 		MB0000000000000000000117 /* MoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000017 /* MoreView.swift */; };
 		MB0000000000000000000118 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000018 /* OnboardingView.swift */; };
+		MB0000000000000000000140 /* BendWebPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000040 /* BendWebPanel.swift */; };
+		MB0000000000000000000141 /* BendWarmupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000041 /* BendWarmupView.swift */; };
 		MB0000000000000000000120 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000020 /* Assets.xcassets */; };
 		MB0000000000000000000121 /* Art in Resources */ = {isa = PBXBuildFile; fileRef = MB0000000000000000000021 /* Art */; };
 /* End PBXBuildFile section */
@@ -58,6 +60,8 @@
 		MB0000000000000000000016 /* ProgressTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressTabView.swift; sourceTree = "<group>"; };
 		MB0000000000000000000017 /* MoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoreView.swift; sourceTree = "<group>"; };
 		MB0000000000000000000018 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		MB0000000000000000000040 /* BendWebPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BendWebPanel.swift; sourceTree = "<group>"; };
+		MB0000000000000000000041 /* BendWarmupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BendWarmupView.swift; sourceTree = "<group>"; };
 		MB0000000000000000000020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		MB0000000000000000000021 /* Art */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Art; sourceTree = "<group>"; };
 		MB0000000000000000000022 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -109,6 +113,8 @@
 				MB0000000000000000000016 /* ProgressTabView.swift */,
 				MB0000000000000000000017 /* MoreView.swift */,
 				MB0000000000000000000018 /* OnboardingView.swift */,
+				MB0000000000000000000040 /* BendWebPanel.swift */,
+				MB0000000000000000000041 /* BendWarmupView.swift */,
 				MB0000000000000000000020 /* Assets.xcassets */,
 				MB0000000000000000000021 /* Art */,
 				MB0000000000000000000022 /* Info.plist */,
@@ -217,6 +223,8 @@
 				MB0000000000000000000116 /* ProgressTabView.swift in Sources */,
 				MB0000000000000000000117 /* MoreView.swift in Sources */,
 				MB0000000000000000000118 /* OnboardingView.swift in Sources */,
+				MB0000000000000000000140 /* BendWebPanel.swift in Sources */,
+				MB0000000000000000000141 /* BendWarmupView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
