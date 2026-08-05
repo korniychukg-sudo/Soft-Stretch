@@ -66,7 +66,7 @@ struct MoreView: View {
                             showPolicyPage = true
                         }
                         Divider().background(SoftTheme.line).padding(.vertical, 8)
-                        rowButton(icon: .moon, tint: SoftTheme.lavender,
+                        rowButton(icon: .lock, tint: SoftTheme.lavender,
                                   title: "Data & storage",
                                   subtitle: "What Mellowbend keeps on this device") {
                             showPrivacy = true
@@ -90,7 +90,7 @@ struct MoreView: View {
                                 Text("Mellowbend")
                                     .font(SoftTheme.display(18))
                                     .foregroundColor(SoftTheme.ink)
-                                Text("Version 1.0")
+                                Text("Version 1.1")
                                     .font(SoftTheme.body(12))
                                     .foregroundColor(SoftTheme.inkSoft)
                                 Text("Made with Buddy, who never skips stretch day.")
